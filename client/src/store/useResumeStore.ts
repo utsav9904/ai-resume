@@ -48,6 +48,7 @@ export interface ResumeState {
   updateEducation: (id: string, data: Partial<Education>) => void;
   removeEducation: (id: string) => void;
   updateSkills: (category: 'technical' | 'soft' | 'languages', values: string[]) => void;
+  setResume: (data: Partial<ResumeState>) => void;
   // Add other update methods later
 }
 
@@ -91,4 +92,6 @@ export const useResumeStore = create<ResumeState>((set) => ({
   updateSkills: (category, values) => set((state) => ({
     skills: { ...state.skills, [category]: values }
   })),
+
+  setResume: (data) => set((state) => ({ ...state, ...data })),
 }));

@@ -1,18 +1,11 @@
 import express from 'express';
-// import { authMiddleware } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import Resume from '../models/Resume';
 
 const router = express.Router();
 
-// Mock auth middleware for now (will implement properly later)
-const mockAuth = (req: any, res: any, next: any) => {
-  // Assume a fixed user ID for testing without token
-  req.user = { id: '60d0fe4f5311236168a109ca' }; 
-  next();
-};
-
 // @route GET /api/resumes
-router.get('/', mockAuth, async (req: any, res) => {
+router.get('/', authMiddleware, async (req: any, res) => {
   try {
     const resumes = await Resume.find({ userId: req.user.id }).sort({ updatedAt: -1 });
     res.json(resumes);
@@ -23,7 +16,7 @@ router.get('/', mockAuth, async (req: any, res) => {
 });
 
 // @route POST /api/resumes
-router.post('/', mockAuth, async (req: any, res) => {
+router.post('/', authMiddleware, async (req: any, res) => {
   try {
     const newResume = new Resume({
       ...req.body,
@@ -38,7 +31,7 @@ router.post('/', mockAuth, async (req: any, res) => {
 });
 
 // @route GET /api/resumes/:id
-router.get('/:id', mockAuth, async (req: any, res) => {
+router.get('/:id', authMiddleware, async (req: any, res) => {
   try {
     const resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
@@ -51,7 +44,7 @@ router.get('/:id', mockAuth, async (req: any, res) => {
 });
 
 // @route PUT /api/resumes/:id
-router.put('/:id', mockAuth, async (req: any, res) => {
+router.put('/:id', authMiddleware, async (req: any, res) => {
   try {
     let resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
@@ -66,7 +59,7 @@ router.put('/:id', mockAuth, async (req: any, res) => {
 });
 
 // @route DELETE /api/resumes/:id
-router.delete('/:id', mockAuth, async (req: any, res) => {
+router.delete('/:id', authMiddleware, async (req: any, res) => {
   try {
     const resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });

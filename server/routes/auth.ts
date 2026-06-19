@@ -65,4 +65,18 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// @route GET /api/auth/profile
+router.get('/profile', async (req: any, res) => {
+  try {
+    const authHeader = req.header('Authorization');
+    if (!authHeader) return res.status(401).json({ message: 'No token' });
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { user: { id: string } };
+    const user = await User.findById(decoded.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
 export default router;

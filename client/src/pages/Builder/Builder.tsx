@@ -1,19 +1,72 @@
-import { useState } from 'react';
-import { User, Briefcase, GraduationCap, Code, FileText, Download, Plus, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { User, Briefcase, GraduationCap, Code, FileText, Download, Plus, Trash2, Save, Sparkles } from 'lucide-react';
+import api from '../../services/api';
 import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import { generatePDF } from '../../utils/pdfExport';
 
 const Builder = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('personal');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const store = useResumeStore();
   const { 
     personalInfo, updatePersonalInfo, 
     summary, updateSummary,
     experience, addExperience, updateExperience, removeExperience,
     education, addEducation, updateEducation, removeEducation,
-    skills, updateSkills
+    skills, updateSkills,
+    setResume
   } = store;
+
+  useEffect(() => {
+    if (id) {
+      api.get(`/api/resumes/${id}`).then(res => {
+        if (res.data) setResume(res.data);
+      }).catch(err => {
+        console.error('Failed to load resume:', err);
+      });
+    }
+  }, [id, setResume]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload = {
+        title: `${personalInfo.fullName || 'Untitled'}'s Resume`,
+        personalInfo, summary, experience, education, skills,
+        template: store.template
+      };
+      if (id) {
+        await api.put(`/api/resumes/${id}`, payload);
+      } else {
+        const res = await api.post('/api/resumes', payload);
+        navigate(`/builder/${res.data._id}`);
+      }
+    } catch (err) {
+      console.error('Failed to save resume');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleGenerateAISummary = async () => {
+    if (!personalInfo.fullName) return alert('Please fill in your name first so the AI knows who you are!');
+    setIsGeneratingAI(true);
+    try {
+      const prompt = `Write a professional resume summary for ${personalInfo.fullName}. Based on: ${JSON.stringify(experience)} and ${JSON.stringify(skills)}`;
+      const res = await api.post('/api/ai/generate-summary', { prompt });
+      updateSummary(res.data.summary);
+    } catch (err) {
+      console.error('AI Error:', err);
+      alert('Failed to generate summary.');
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   const tabs = [
     { id: 'personal', icon: <User size={20}/>, label: 'Personal Info' },
@@ -93,8 +146,13 @@ const Builder = () => {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none transition"
                   placeholder="Write a brief summary of your professional background..."
                ></textarea>
-               <button className="mt-4 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2">
-                 ✨ Generate with AI
+               <button 
+                 onClick={handleGenerateAISummary}
+                 disabled={isGeneratingAI}
+                 className="mt-4 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50"
+               >
+                 <Sparkles size={16} />
+                 {isGeneratingAI ? 'Generating...' : '✨ Generate with AI'}
                </button>
              </div>
           )}
@@ -219,7 +277,14 @@ const Builder = () => {
 
       {/* Live Preview Area */}
       <section className="w-[45%] bg-gray-200 p-8 overflow-y-auto hidden lg:block border-l border-gray-300">
-         <div className="flex justify-end mb-4">
+         <div className="flex justify-end mb-4 gap-3">
+            <button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-teal-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
+            >
+              <Save size={16} /> {isSaving ? 'Saving...' : 'Save Progress'}
+            </button>
             <button 
               onClick={() => generatePDF('resume-preview', `${personalInfo.fullName || 'resume'}.pdf`)}
               className="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-900 transition"
