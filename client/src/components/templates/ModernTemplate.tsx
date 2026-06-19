@@ -1,0 +1,103 @@
+import type { ResumeState } from '../../store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeState;
+}
+
+const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
+  return (
+    <div className="w-full h-full bg-white p-8 font-sans text-gray-800" id="resume-preview">
+      {/* Header */}
+      <header className="border-b-2 border-teal-600 pb-4 mb-6">
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
+          {data.personalInfo.email && <span>{data.personalInfo.email}</span>}
+          {data.personalInfo.phone && <span>• {data.personalInfo.phone}</span>}
+        </div>
+      </header>
+
+      {/* Summary */}
+      {data.summary && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-teal-700 uppercase tracking-wider mb-2">Professional Summary</h2>
+          <p className="text-sm leading-relaxed">{data.summary}</p>
+        </section>
+      )}
+
+      {/* Experience */}
+      {data.experience.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-teal-700 uppercase tracking-wider mb-2">Experience</h2>
+          <div className="space-y-4">
+            {data.experience.map((exp) => (
+              <div key={exp.id}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3 className="font-semibold text-gray-900">{exp.position || 'Position Title'}</h3>
+                  <span className="text-sm font-medium text-teal-600">
+                    {exp.startDate} {exp.startDate && exp.endDate ? '-' : ''} {exp.endDate}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">{exp.company || 'Company Name'}</div>
+                {exp.description && (
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{exp.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Education */}
+      {data.education.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-teal-700 uppercase tracking-wider mb-2">Education</h2>
+          <div className="space-y-4">
+            {data.education.map((edu) => (
+              <div key={edu.id}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3 className="font-semibold text-gray-900">{edu.degree || 'Degree'}</h3>
+                  <span className="text-sm font-medium text-teal-600">
+                    {edu.startDate} {edu.startDate && edu.endDate ? '-' : ''} {edu.endDate}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>{edu.school || 'School / University'}</span>
+                  {edu.grade && <span className="font-medium text-gray-500">{edu.grade}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Skills */}
+      {(data.skills.technical.length > 0 || data.skills.soft.length > 0 || data.skills.languages.length > 0) && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-teal-700 uppercase tracking-wider mb-2">Skills</h2>
+          <div className="text-sm text-gray-700 space-y-2">
+            {data.skills.technical.some(s => s) && (
+               <div>
+                 <span className="font-semibold text-gray-900">Technical: </span>
+                 {data.skills.technical.filter(s => s).join(', ')}
+               </div>
+            )}
+            {data.skills.soft.some(s => s) && (
+               <div>
+                 <span className="font-semibold text-gray-900">Soft Skills: </span>
+                 {data.skills.soft.filter(s => s).join(', ')}
+               </div>
+            )}
+            {data.skills.languages.some(s => s) && (
+               <div>
+                 <span className="font-semibold text-gray-900">Languages: </span>
+                 {data.skills.languages.filter(s => s).join(', ')}
+               </div>
+            )}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+};
+
+export default ModernTemplate;
