@@ -272,6 +272,30 @@ const Builder = () => {
                 </div>
              </div>
           )}
+
+          {/* Navigation Buttons */}
+          <div className="mt-10 pt-6 border-t border-gray-100 flex justify-between items-center">
+            <button 
+              onClick={() => {
+                const currentIndex = tabs.findIndex(t => t.id === activeTab);
+                if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1].id);
+              }}
+              disabled={activeTab === tabs[0].id}
+              className="px-6 py-2.5 rounded-xl font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-0"
+            >
+              &larr; Previous
+            </button>
+            <button 
+              onClick={() => {
+                const currentIndex = tabs.findIndex(t => t.id === activeTab);
+                if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1].id);
+              }}
+              disabled={activeTab === tabs[tabs.length - 1].id}
+              className="px-6 py-2.5 rounded-xl font-medium bg-teal-600 text-white hover:bg-teal-700 transition shadow-sm disabled:opacity-0"
+            >
+              Next Step &rarr;
+            </button>
+          </div>
         </div>
       </section>
 
