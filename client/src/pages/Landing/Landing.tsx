@@ -34,7 +34,8 @@ const Landing = () => {
           </div>
           <span className="text-xl font-bold text-gray-900">ResumeAI</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <Link to="/blog" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Blog</Link>
           <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Log in</Link>
           <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition shadow-sm">
             Get Started Free
@@ -209,6 +210,10 @@ const Landing = () => {
           <span className="font-semibold text-gray-700">ResumeAI</span>
         </div>
         <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <Link to="/" className="hover:text-teal-600 transition">Home</Link>
+          <Link to="/blog" className="hover:text-teal-600 transition">Blog</Link>
+        </div>
       </footer>
     </div>
   );
