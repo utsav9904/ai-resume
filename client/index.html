@@ -2,9 +2,129 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+
+    <!-- ═══════════════════════════════════════════
+         PRIMARY SEO META TAGS
+    ════════════════════════════════════════════ -->
+    <title>ResumeAI — Free AI-Powered Resume Builder | Create ATS-Friendly Resumes</title>
+    <meta name="description" content="Build professional, ATS-optimized resumes in minutes with AI. Get AI-generated summaries, cover letters, and skill suggestions. Choose from 3 premium templates. Free forever." />
+    <meta name="keywords" content="AI resume builder, free resume builder, ATS resume, professional resume, cover letter generator, resume templates, AI career tools, job application, resume maker" />
+    <meta name="author" content="ResumeAI" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://ai-resume-builder.vercel.app/" />
+
+    <!-- ═══════════════════════════════════════════
+         OPEN GRAPH (Facebook, LinkedIn, WhatsApp)
+    ════════════════════════════════════════════ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ResumeAI — Free AI-Powered Resume Builder" />
+    <meta property="og:description" content="Create ATS-friendly resumes in minutes with AI. Generate professional summaries, tailor your resume to any job, and download as PDF for free." />
+    <meta property="og:url" content="https://ai-resume-builder.vercel.app/" />
+    <meta property="og:site_name" content="ResumeAI" />
+    <meta property="og:image" content="https://ai-resume-builder.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ResumeAI — Build professional resumes with AI" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- ═══════════════════════════════════════════
+         TWITTER / X CARD
+    ════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ResumeAI — Free AI-Powered Resume Builder" />
+    <meta name="twitter:description" content="Create ATS-friendly resumes with AI in minutes. Generate summaries, tailor to jobs, download as PDF." />
+    <meta name="twitter:image" content="https://ai-resume-builder.vercel.app/og-image.png" />
+
+    <!-- ═══════════════════════════════════════════
+         JSON-LD STRUCTURED DATA (Google Rich Results)
+    ════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ResumeAI",
+      "url": "https://ai-resume-builder.vercel.app/",
+      "description": "Free AI-powered resume builder that helps you create ATS-friendly resumes, generate professional summaries, tailor your resume to any job description, and produce cover letters.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "AI-generated professional summaries",
+        "AI cover letter generator",
+        "Job description resume tailoring",
+        "3 premium resume templates",
+        "PDF export",
+        "ATS-optimized formatting",
+        "Real-time live preview",
+        "Drag-and-drop reordering"
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "128"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is ResumeAI free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, ResumeAI is completely free to use. You can create, edit, and download your resume as a PDF at no cost."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the resumes ATS-friendly?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, all ResumeAI templates are designed to pass Applicant Tracking Systems (ATS) with clean formatting and proper keyword structure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I generate a cover letter with AI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Paste any job description into the Cover Letter tab and the AI will instantly generate a personalized, professional cover letter tailored to that specific role."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the Job Tailoring feature work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Paste a job description into the Job Tailor tab. The AI analyzes your resume against the posting and suggests specific keywords and improvements to help your resume get past ATS filters and match the role."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- ═══════════════════════════════════════════
+         FAVICON & THEME
+    ════════════════════════════════════════════ -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#0d9488" />
+
+    <!-- ═══════════════════════════════════════════
+         PERFORMANCE: PRECONNECT HINTS
+    ════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

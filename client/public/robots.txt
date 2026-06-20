@@ -1,0 +1,14 @@
+# ResumeAI — robots.txt
+# Allow all search engines to crawl and index the site
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+
+# Block authenticated/private pages from indexing
+Disallow: /dashboard
+Disallow: /builder
+
+# Sitemap location
+Sitemap: https://ai-resume-builder.vercel.app/sitemap.xml
