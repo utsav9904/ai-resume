@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -18,55 +18,53 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
+const AppShell = ({ showBack = false, children }: { showBack?: boolean; children: React.ReactNode }) => (
+  <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+    <header className="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
+      <Link to="/dashboard" className="text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
+        <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs">✦</span>
+        ResumeAI
+      </Link>
+      {showBack && (
+        <Link to="/dashboard" className="text-sm text-gray-500 hover:text-teal-600 transition font-medium">
+          ← Back to Dashboard
+        </Link>
+      )}
+    </header>
+    <main className="flex-grow flex flex-col">{children}</main>
+  </div>
+);
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public landing */}
+          {/* Public */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          {/* Protected pages */}
+
+          {/* Protected */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-                <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b border-gray-100">
-                  <h1 className="text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
-                    <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs">✦</span>
-                    ResumeAI
-                  </h1>
-                </header>
-                <main className="flex-grow flex flex-col"><Dashboard /></main>
-              </div>
+              <AppShell>
+                <Dashboard />
+              </AppShell>
             </ProtectedRoute>
           } />
           <Route path="/builder" element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-                <header className="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
-                  <h1 className="text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
-                    <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs">✦</span>
-                    ResumeAI
-                  </h1>
-                  <a href="/dashboard" className="text-sm text-gray-500 hover:text-gray-800 transition">← Back to Dashboard</a>
-                </header>
-                <main className="flex-grow flex flex-col"><Builder /></main>
-              </div>
+              <AppShell showBack>
+                <Builder />
+              </AppShell>
             </ProtectedRoute>
           } />
           <Route path="/builder/:id" element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-                <header className="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
-                  <h1 className="text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
-                    <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs">✦</span>
-                    ResumeAI
-                  </h1>
-                  <a href="/dashboard" className="text-sm text-gray-500 hover:text-gray-800 transition">← Back to Dashboard</a>
-                </header>
-                <main className="flex-grow flex flex-col"><Builder /></main>
-              </div>
+              <AppShell showBack>
+                <Builder />
+              </AppShell>
             </ProtectedRoute>
           } />
         </Routes>
