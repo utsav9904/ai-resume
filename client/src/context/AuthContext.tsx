@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { useResumeStore } from '../store/useResumeStore';
 
 interface User {
   id: string;
@@ -37,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
+  const resetResume = useResumeStore((state) => state.resetResume);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,29 +49,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // 1. If the JWT is expired, log out immediately
+      // If the JWT is expired, log out immediately
       if (isTokenExpired(storedToken)) {
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
+        resetResume(); // Clear any leftover resume data
         setLoading(false);
         return;
       }
 
-      // 2. Token exists and is not expired — trust it, mark as authenticated
+      // Token is valid — trust it
       setToken(storedToken);
 
-      // 3. Try to fetch full user profile from backend (best effort — do NOT log out if it fails)
+      // Try to fetch full user profile (best effort — do NOT log out if it fails)
       try {
         const response = await api.get('/api/auth/profile');
         if (response?.data) {
           setUser(response.data);
         }
       } catch {
-        // Backend unreachable or returned error — keep the token alive.
-        // The user stays logged in; if the token is truly invalid, 
-        // subsequent protected API calls will get 401 and the api.ts
-        // interceptor will redirect to /login at that point.
+        // Backend unreachable — stay logged in with JWT
       }
 
       setLoading(false);
@@ -79,12 +79,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (newToken: string, newUser: User) => {
+    resetResume(); // 🔑 Clear previous user's resume data before loading new session
     localStorage.setItem('token', newToken);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
+    resetResume(); // 🔑 Clear resume data on logout so the next user starts fresh
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
