@@ -17,6 +17,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to decode JWT payload without a library
+const decodeJWTPayload = (token: string): any => {
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenExpired = (token: string): boolean => {
+  const payload = decodeJWTPayload(token);
+  if (!payload || !payload.exp) return false;
+  return Date.now() >= payload.exp * 1000;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
@@ -25,25 +41,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-          // You could have a /api/auth/me route to validate token,
-          // but for MVP, we'll assume the token is valid if it exists.
-          // Ideally, we fetch the user profile here.
-          const response = await api.get('/api/auth/profile').catch(() => null);
-          if (response && response.data) {
-            setUser(response.data);
-            setToken(storedToken);
-          } else {
-            localStorage.removeItem('token');
-            setToken(null);
-            setUser(null);
-          }
-        } catch (error) {
-          localStorage.removeItem('token');
-          setToken(null);
-        }
+
+      if (!storedToken) {
+        setLoading(false);
+        return;
       }
+
+      // 1. If the JWT is expired, log out immediately
+      if (isTokenExpired(storedToken)) {
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Token exists and is not expired — trust it, mark as authenticated
+      setToken(storedToken);
+
+      // 3. Try to fetch full user profile from backend (best effort — do NOT log out if it fails)
+      try {
+        const response = await api.get('/api/auth/profile');
+        if (response?.data) {
+          setUser(response.data);
+        }
+      } catch {
+        // Backend unreachable or returned error — keep the token alive.
+        // The user stays logged in; if the token is truly invalid, 
+        // subsequent protected API calls will get 401 and the api.ts
+        // interceptor will redirect to /login at that point.
+      }
+
       setLoading(false);
     };
 
