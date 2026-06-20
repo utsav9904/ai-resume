@@ -44,6 +44,7 @@ export interface IResume extends Document {
     date: string;
   }>;
   template: string;
+  templateColor: string;
 }
 
 const ResumeSchema: Schema = new Schema(
@@ -99,6 +100,7 @@ const ResumeSchema: Schema = new Schema(
       },
     ],
     template: { type: String, default: 'modern' },
+    templateColor: { type: String, default: '#0d9488' },
   },
   { timestamps: true }
 );

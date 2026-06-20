@@ -39,15 +39,20 @@ export interface ResumeState {
   projects: any[];
   certifications: any[];
   template: string;
+  templateColor: string;
   updatePersonalInfo: (data: Partial<ResumeState['personalInfo']>) => void;
   updateSummary: (summary: string) => void;
   addExperience: () => void;
   updateExperience: (id: string, data: Partial<Experience>) => void;
   removeExperience: (id: string) => void;
+  reorderExperience: (startIndex: number, endIndex: number) => void;
   addEducation: () => void;
   updateEducation: (id: string, data: Partial<Education>) => void;
   removeEducation: (id: string) => void;
+  reorderEducation: (startIndex: number, endIndex: number) => void;
   updateSkills: (category: 'technical' | 'soft' | 'languages', values: string[]) => void;
+  updateTemplateColor: (color: string) => void;
+
   setResume: (data: Partial<ResumeState>) => void;
   // Add other update methods later
 }
@@ -63,6 +68,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   projects: [],
   certifications: [],
   template: 'modern',
+  templateColor: '#0d9488',
 
   updatePersonalInfo: (data) => set((state) => ({
     personalInfo: { ...state.personalInfo, ...data }
@@ -78,6 +84,12 @@ export const useResumeStore = create<ResumeState>((set) => ({
   removeExperience: (id) => set((state) => ({
     experience: state.experience.filter(exp => exp.id !== id)
   })),
+  reorderExperience: (startIndex, endIndex) => set((state) => {
+    const newExperience = [...state.experience];
+    const [movedItem] = newExperience.splice(startIndex, 1);
+    newExperience.splice(endIndex, 0, movedItem);
+    return { experience: newExperience };
+  }),
   
   addEducation: () => set((state) => ({
     education: [...state.education, { id: crypto.randomUUID(), school: '', degree: '', startDate: '', endDate: '', grade: '' }]
@@ -88,10 +100,18 @@ export const useResumeStore = create<ResumeState>((set) => ({
   removeEducation: (id) => set((state) => ({
     education: state.education.filter(edu => edu.id !== id)
   })),
+  reorderEducation: (startIndex, endIndex) => set((state) => {
+    const newEducation = [...state.education];
+    const [movedItem] = newEducation.splice(startIndex, 1);
+    newEducation.splice(endIndex, 0, movedItem);
+    return { education: newEducation };
+  }),
 
   updateSkills: (category, values) => set((state) => ({
     skills: { ...state.skills, [category]: values }
   })),
+
+  updateTemplateColor: (color) => set({ templateColor: color }),
 
   setResume: (data) => set((state) => ({ ...state, ...data })),
 }));
