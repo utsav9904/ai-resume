@@ -82,23 +82,51 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
           <h2 className="text-lg font-bold uppercase tracking-wider mb-2" style={{ color }}>Skills</h2>
           <div className="text-sm text-gray-700 space-y-2">
             {data.skills.technical.some(s => s) && (
-               <div>
-                 <span className="font-semibold text-gray-900">Technical: </span>
-                 {data.skills.technical.filter(s => s).join(', ')}
-               </div>
+               <div><span className="font-semibold text-gray-900">Technical: </span>{data.skills.technical.filter(s => s).join(', ')}</div>
             )}
             {data.skills.soft.some(s => s) && (
-               <div>
-                 <span className="font-semibold text-gray-900">Soft Skills: </span>
-                 {data.skills.soft.filter(s => s).join(', ')}
-               </div>
+               <div><span className="font-semibold text-gray-900">Soft Skills: </span>{data.skills.soft.filter(s => s).join(', ')}</div>
             )}
             {data.skills.languages.some(s => s) && (
-               <div>
-                 <span className="font-semibold text-gray-900">Languages: </span>
-                 {data.skills.languages.filter(s => s).join(', ')}
-               </div>
+               <div><span className="font-semibold text-gray-900">Languages: </span>{data.skills.languages.filter(s => s).join(', ')}</div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Projects */}
+      {data.projects && data.projects.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold uppercase tracking-wider mb-2" style={{ color }}>Projects</h2>
+          <div className="space-y-3">
+            {(data.projects as any[]).map((proj) => (
+              <div key={proj.id}>
+                <div className="flex justify-between items-baseline mb-0.5">
+                  <h3 className="font-semibold text-gray-900">{proj.name || 'Project Name'}</h3>
+                  {proj.githubLink && <span className="text-xs" style={{ color }}>{proj.githubLink}</span>}
+                </div>
+                {proj.technologies && <div className="text-xs text-gray-500 mb-1">{proj.technologies}</div>}
+                {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certifications */}
+      {data.certifications && data.certifications.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold uppercase tracking-wider mb-2" style={{ color }}>Certifications</h2>
+          <div className="space-y-2">
+            {(data.certifications as any[]).map((cert) => (
+              <div key={cert.id} className="flex justify-between items-baseline">
+                <div>
+                  <span className="font-semibold text-sm">{cert.name || 'Certificate Name'}</span>
+                  {cert.organization && <span className="text-xs text-gray-500 ml-2">— {cert.organization}</span>}
+                </div>
+                {cert.date && <span className="text-xs font-medium" style={{ color }}>{cert.date}</span>}
+              </div>
+            ))}
           </div>
         </section>
       )}

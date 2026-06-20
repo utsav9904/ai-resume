@@ -18,7 +18,23 @@ export interface Education {
   grade: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  technologies: string;
+  githubLink: string;
+}
+
+export interface Certification {
+  id: string;
+  name: string;
+  organization: string;
+  date: string;
+}
+
 export interface ResumeState {
+  title: string;
   personalInfo: {
     fullName: string;
     email: string;
@@ -36,10 +52,11 @@ export interface ResumeState {
     soft: string[];
     languages: string[];
   };
-  projects: any[];
-  certifications: any[];
+  projects: Project[];
+  certifications: Certification[];
   template: string;
   templateColor: string;
+  updateTitle: (title: string) => void;
   updatePersonalInfo: (data: Partial<ResumeState['personalInfo']>) => void;
   updateSummary: (summary: string) => void;
   addExperience: () => void;
@@ -52,15 +69,19 @@ export interface ResumeState {
   reorderEducation: (startIndex: number, endIndex: number) => void;
   updateSkills: (category: 'technical' | 'soft' | 'languages', values: string[]) => void;
   updateTemplateColor: (color: string) => void;
-
+  addProject: () => void;
+  updateProject: (id: string, data: Partial<Project>) => void;
+  removeProject: (id: string) => void;
+  addCertification: () => void;
+  updateCertification: (id: string, data: Partial<Certification>) => void;
+  removeCertification: (id: string) => void;
   setResume: (data: Partial<ResumeState>) => void;
-  // Add other update methods later
+  resetResume: () => void;
 }
 
-export const useResumeStore = create<ResumeState>((set) => ({
-  personalInfo: {
-    fullName: '', email: '', phone: '', address: '', linkedin: '', github: '', portfolio: ''
-  },
+const defaultState = {
+  title: 'Untitled Resume',
+  personalInfo: { fullName: '', email: '', phone: '', address: '', linkedin: '', github: '', portfolio: '' },
   summary: '',
   education: [],
   experience: [],
@@ -69,12 +90,15 @@ export const useResumeStore = create<ResumeState>((set) => ({
   certifications: [],
   template: 'modern',
   templateColor: '#0d9488',
+};
 
-  updatePersonalInfo: (data) => set((state) => ({
-    personalInfo: { ...state.personalInfo, ...data }
-  })),
+export const useResumeStore = create<ResumeState>((set) => ({
+  ...defaultState,
+
+  updateTitle: (title) => set({ title }),
+  updatePersonalInfo: (data) => set((state) => ({ personalInfo: { ...state.personalInfo, ...data } })),
   updateSummary: (summary) => set({ summary }),
-  
+
   addExperience: () => set((state) => ({
     experience: [...state.experience, { id: crypto.randomUUID(), company: '', position: '', startDate: '', endDate: '', description: '' }]
   })),
@@ -90,7 +114,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
     newExperience.splice(endIndex, 0, movedItem);
     return { experience: newExperience };
   }),
-  
+
   addEducation: () => set((state) => ({
     education: [...state.education, { id: crypto.randomUUID(), school: '', degree: '', startDate: '', endDate: '', grade: '' }]
   })),
@@ -113,5 +137,26 @@ export const useResumeStore = create<ResumeState>((set) => ({
 
   updateTemplateColor: (color) => set({ templateColor: color }),
 
+  addProject: () => set((state) => ({
+    projects: [...state.projects, { id: crypto.randomUUID(), name: '', description: '', technologies: '', githubLink: '' }]
+  })),
+  updateProject: (id, data) => set((state) => ({
+    projects: state.projects.map((p: any) => p.id === id ? { ...p, ...data } : p)
+  })),
+  removeProject: (id) => set((state) => ({
+    projects: state.projects.filter((p: any) => p.id !== id)
+  })),
+
+  addCertification: () => set((state) => ({
+    certifications: [...state.certifications, { id: crypto.randomUUID(), name: '', organization: '', date: '' }]
+  })),
+  updateCertification: (id, data) => set((state) => ({
+    certifications: state.certifications.map((c: any) => c.id === id ? { ...c, ...data } : c)
+  })),
+  removeCertification: (id) => set((state) => ({
+    certifications: state.certifications.filter((c: any) => c.id !== id)
+  })),
+
   setResume: (data) => set((state) => ({ ...state, ...data })),
+  resetResume: () => set({ ...defaultState }),
 }));
