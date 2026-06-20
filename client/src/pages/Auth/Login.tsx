@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { ArrowLeft } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -28,8 +29,11 @@ const Login = () => {
 
   return (
     <div className="flex-grow flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Welcome Back</h2>
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 relative">
+        <Link to="/" className="absolute top-6 left-6 text-gray-400 hover:text-teal-600 transition flex items-center gap-1 text-sm font-medium">
+          <ArrowLeft size={16} /> Home
+        </Link>
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-8 mt-2">Welcome Back</h2>
         <form className="space-y-5" onSubmit={handleSubmit}>
           {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
           <div>
