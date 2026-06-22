@@ -7,6 +7,9 @@ const router = express.Router();
 // @route GET /api/resumes
 router.get('/', authMiddleware, async (req: any, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
     const resumes = await Resume.find({ userId: req.user.id }).sort({ updatedAt: -1 });
     res.json(resumes);
   } catch (err: any) {
@@ -18,6 +21,9 @@ router.get('/', authMiddleware, async (req: any, res) => {
 // @route POST /api/resumes
 router.post('/', authMiddleware, async (req: any, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
     const newResume = new Resume({
       ...req.body,
       userId: req.user.id
@@ -33,6 +39,9 @@ router.post('/', authMiddleware, async (req: any, res) => {
 // @route GET /api/resumes/:id
 router.get('/:id', authMiddleware, async (req: any, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
     const resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
     if (resume.userId.toString() !== req.user.id) return res.status(401).json({ message: 'Not authorized' });
@@ -46,6 +55,9 @@ router.get('/:id', authMiddleware, async (req: any, res) => {
 // @route PUT /api/resumes/:id
 router.put('/:id', authMiddleware, async (req: any, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
     let resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
     if (resume.userId.toString() !== req.user.id) return res.status(401).json({ message: 'Not authorized' });
@@ -61,6 +73,9 @@ router.put('/:id', authMiddleware, async (req: any, res) => {
 // @route DELETE /api/resumes/:id
 router.delete('/:id', authMiddleware, async (req: any, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
     const resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: 'Resume not found' });
     if (resume.userId.toString() !== req.user.id) return res.status(401).json({ message: 'Not authorized' });
