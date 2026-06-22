@@ -44,10 +44,10 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 text-center relative overflow-hidden">
-        {/* Background gradient orbs */}
-        <div className="absolute top-10 left-1/4 w-96 h-96 bg-teal-100 rounded-full blur-3xl opacity-40 -translate-x-1/2" />
-        <div className="absolute top-20 right-1/4 w-80 h-80 bg-purple-100 rounded-full blur-3xl opacity-40 translate-x-1/2" />
+      <section 
+        className="pt-32 pb-20 px-6 text-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/landing_bg.png')" }}
+      >
 
         <div className="relative max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
