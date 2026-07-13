@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   User, Briefcase, GraduationCap, Code, FileText, Download, Plus, Trash2,
   Save, Sparkles, Mail, GripVertical, FolderOpen, Award, CheckCircle,
-  Menu, X, Edit2, Target
+  Menu, X, Edit2, Target, Sliders, Columns, Type, Palette, Move, Heading,
+  ChevronUp, ChevronDown, RefreshCw
 } from 'lucide-react';
 import api from '../../services/api';
 import { useResumeStore } from '../../store/useResumeStore';
@@ -14,6 +15,15 @@ import { generatePDF } from '../../utils/pdfExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
+const sectionLabels: { [key: string]: string } = {
+  summary: 'Professional Summary',
+  experience: 'Work Experience',
+  education: 'Education',
+  skills: 'Skills & Languages',
+  projects: 'Projects',
+  certifications: 'Certifications',
+};
 
 const SortableItem = ({ id, children, onRemove }: { id: string; children: React.ReactNode; onRemove: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -50,6 +60,8 @@ const Builder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('personal');
+  const [editorMode, setEditorMode] = useState<'content' | 'customize'>('content');
+  const [activeCustomizeTab, setActiveCustomizeTab] = useState<'layout' | 'typography' | 'colors' | 'spacing' | 'headers'>('layout');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved');
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -74,8 +86,36 @@ const Builder = () => {
     projects, addProject, updateProject, removeProject,
     certifications, addCertification, updateCertification, removeCertification,
     template, templateColor, updateTemplateColor,
+    customization, updateCustomization,
     setResume, resetResume,
   } = store;
+
+  const moveSection = (sectionId: string, to: 'sidebar' | 'main') => {
+    const sidebarList = customization.sidebarSections || ['skills', 'certifications'];
+    const mainList = customization.mainSections || ['summary', 'experience', 'education', 'projects'];
+    
+    if (to === 'sidebar') {
+      const newMain = mainList.filter(s => s !== sectionId);
+      const newSidebar = [...sidebarList.filter(s => s !== sectionId), sectionId];
+      updateCustomization({ mainSections: newMain, sidebarSections: newSidebar });
+    } else {
+      const newSidebar = sidebarList.filter(s => s !== sectionId);
+      const newMain = [...mainList.filter(s => s !== sectionId), sectionId];
+      updateCustomization({ mainSections: newMain, sidebarSections: newSidebar });
+    }
+  };
+
+  const reorderSectionList = (listKey: 'sectionOrder' | 'sidebarSections' | 'mainSections', index: number, direction: 'up' | 'down') => {
+    const list = [...(customization[listKey] || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+    
+    const temp = list[index];
+    list[index] = list[targetIndex];
+    list[targetIndex] = temp;
+    
+    updateCustomization({ [listKey]: list });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -100,7 +140,7 @@ const Builder = () => {
       const payload = {
         title: title || `${personalInfo.fullName || 'Untitled'}'s Resume`,
         personalInfo, summary, experience, education, skills, projects, certifications,
-        template, templateColor,
+        template, templateColor, customization,
       };
       if (id) {
         await api.put(`/api/resumes/${id}`, payload);
@@ -114,7 +154,7 @@ const Builder = () => {
     } finally {
       if (!silent) setIsSaving(false);
     }
-  }, [title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor, id, navigate]);
+  }, [title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor, customization, id, navigate]);
 
   // Auto-save debounce (3 seconds after last change)
   useEffect(() => {
@@ -122,11 +162,11 @@ const Builder = () => {
     clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => doSave(true), 3000);
     return () => clearTimeout(autoSaveTimer.current);
-  }, [title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor]);
+  }, [title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor, customization]);
 
   // Mark unsaved on any change
   useEffect(() => { setSaveStatus('unsaved'); }, [
-    title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor
+    title, personalInfo, summary, experience, education, skills, projects, certifications, template, templateColor, customization
   ]);
 
   const handleGenerateAISummary = async () => {
@@ -215,34 +255,85 @@ const Builder = () => {
     { id: 'coverLetter', icon: <Mail size={18} />, label: 'Cover Letter' },
   ];
 
+  const customizeTabs = [
+    { id: 'layout', icon: <Columns size={18} />, label: 'Layout & Columns' },
+    { id: 'typography', icon: <Type size={18} />, label: 'Typography' },
+    { id: 'colors', icon: <Palette size={18} />, label: 'Themes & Colors' },
+    { id: 'spacing', icon: <Move size={18} />, label: 'Margins & Spacing' },
+    { id: 'headers', icon: <Heading size={18} />, label: 'Heading Styles' },
+  ];
+
   const SidebarContent = () => (
-    <nav className="p-4 space-y-1">
-      {/* Completion bar */}
-      <div className="mb-4 px-2">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Resume Completion</span>
-          <span className="font-bold text-teal-600">{completion}%</span>
-        </div>
-        <div className="w-full bg-gray-100 rounded-full h-2">
-          <div
-            className="h-2 rounded-full transition-all duration-500"
-            style={{ width: `${completion}%`, backgroundColor: completion === 100 ? '#10b981' : '#0d9488' }}
-          />
-        </div>
-      </div>
-      {tabs.map(tab => (
+    <div className="flex flex-col h-full bg-white">
+      {/* Mode Switcher */}
+      <div className="p-3 border-b border-gray-150 flex gap-1.5 bg-gray-50/50">
         <button
-          key={tab.id}
-          onClick={() => { setActiveTab(tab.id); setMobileSidebarOpen(false); }}
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-            activeTab === tab.id ? 'bg-teal-50 text-teal-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          onClick={() => setEditorMode('content')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-xs font-bold rounded-lg transition border ${
+            editorMode === 'content'
+              ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+              : 'bg-white text-gray-500 border-gray-200 hover:text-gray-700 hover:bg-gray-50'
           }`}
         >
-          {tab.icon}
-          {tab.label}
+          <Edit2 size={13} /> Content
         </button>
-      ))}
-    </nav>
+        <button
+          onClick={() => setEditorMode('customize')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-xs font-bold rounded-lg transition border ${
+            editorMode === 'customize'
+              ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+              : 'bg-white text-gray-500 border-gray-200 hover:text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <Sliders size={13} /> Customize
+        </button>
+      </div>
+
+      <nav className="p-3 space-y-1 overflow-y-auto flex-1">
+        {editorMode === 'content' ? (
+          <>
+            {/* Completion bar */}
+            <div className="mb-4 px-2">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Resume Completion</span>
+                <span className="font-bold text-teal-600">{completion}%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${completion}%`, backgroundColor: completion === 100 ? '#10b981' : '#0d9488' }}
+                />
+              </div>
+            </div>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setMobileSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
+                  activeTab === tab.id ? 'bg-teal-50 text-teal-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </>
+        ) : (
+          customizeTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveCustomizeTab(tab.id as any); setMobileSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
+                activeCustomizeTab === tab.id ? 'bg-teal-50 text-teal-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))
+        )}
+      </nav>
+    </div>
   );
 
   return (
@@ -296,241 +387,709 @@ const Builder = () => {
             </button>
           </div>
 
-          {/* ─── Personal ─── */}
-          {activeTab === 'personal' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" value={personalInfo.fullName} onChange={e => updatePersonalInfo({ fullName: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" value={personalInfo.email} onChange={e => updatePersonalInfo({ email: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" value={personalInfo.phone} onChange={e => updatePersonalInfo({ phone: e.target.value })} className={inputCls} />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <input type="text" value={personalInfo.address} onChange={e => updatePersonalInfo({ address: e.target.value })} className={inputCls} placeholder="City, State, Country" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
-                <input type="url" value={personalInfo.linkedin} onChange={e => updatePersonalInfo({ linkedin: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
-                <input type="url" value={personalInfo.github} onChange={e => updatePersonalInfo({ github: e.target.value })} className={inputCls} />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio Website</label>
-                <input type="url" value={personalInfo.portfolio} onChange={e => updatePersonalInfo({ portfolio: e.target.value })} className={inputCls} />
-              </div>
-            </div>
-          )}
-
-          {/* ─── Summary ─── */}
-          {activeTab === 'summary' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Professional Summary</label>
-              <textarea rows={6} value={summary} onChange={e => updateSummary(e.target.value)} className={inputCls} placeholder="Write a brief summary..." />
-              <button onClick={handleGenerateAISummary} disabled={isGeneratingAI} className="mt-4 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
-                <Sparkles size={16} /> {isGeneratingAI ? 'Generating...' : '✨ Generate with AI'}
-              </button>
-            </div>
-          )}
-
-          {/* ─── Experience ─── */}
-          {activeTab === 'experience' && (
-            <div>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndExperience}>
-                <SortableContext items={experience.map(e => e.id)} strategy={verticalListSortingStrategy}>
-                  {experience.map((exp, index) => (
-                    <SortableItem key={exp.id} id={exp.id} onRemove={() => removeExperience(exp.id)}>
-                      <h3 className="font-semibold text-gray-800 mb-3 text-sm">Experience #{index + 1}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Company</label><input type="text" value={exp.company} onChange={e => updateExperience(exp.id, { company: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Position</label><input type="text" value={exp.position} onChange={e => updateExperience(exp.id, { position: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label><input type="text" placeholder="Jan 2020" value={exp.startDate} onChange={e => updateExperience(exp.id, { startDate: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">End Date</label><input type="text" placeholder="Present" value={exp.endDate} onChange={e => updateExperience(exp.id, { endDate: e.target.value })} className={inputCls} /></div>
-                      </div>
-                      <div className="flex justify-between items-center mb-1">
-                        <label className="block text-xs font-medium text-gray-600">Description</label>
-                        <button onClick={() => handleImproveBullet(exp.id, exp.description)} className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">✨ AI Improve</button>
-                      </div>
-                      <textarea rows={3} value={exp.description} onChange={e => updateExperience(exp.id, { description: e.target.value })} className={inputCls} placeholder="Responsibilities and achievements..." />
-                    </SortableItem>
-                  ))}
-                </SortableContext>
-              </DndContext>
-              <button onClick={addExperience} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
-                <Plus size={18} /> Add Experience
-              </button>
-            </div>
-          )}
-
-          {/* ─── Education ─── */}
-          {activeTab === 'education' && (
-            <div>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndEducation}>
-                <SortableContext items={education.map(e => e.id)} strategy={verticalListSortingStrategy}>
-                  {education.map((edu, index) => (
-                    <SortableItem key={edu.id} id={edu.id} onRemove={() => removeEducation(edu.id)}>
-                      <h3 className="font-semibold text-gray-800 mb-3 text-sm">Education #{index + 1}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="col-span-2"><label className="block text-xs font-medium text-gray-600 mb-1">School / University</label><input type="text" value={edu.school} onChange={e => updateEducation(edu.id, { school: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Degree</label><input type="text" value={edu.degree} onChange={e => updateEducation(edu.id, { degree: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Grade / CGPA</label><input type="text" value={edu.grade} onChange={e => updateEducation(edu.id, { grade: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label><input type="text" placeholder="2018" value={edu.startDate} onChange={e => updateEducation(edu.id, { startDate: e.target.value })} className={inputCls} /></div>
-                        <div><label className="block text-xs font-medium text-gray-600 mb-1">End Date</label><input type="text" placeholder="2022" value={edu.endDate} onChange={e => updateEducation(edu.id, { endDate: e.target.value })} className={inputCls} /></div>
-                      </div>
-                    </SortableItem>
-                  ))}
-                </SortableContext>
-              </DndContext>
-              <button onClick={addEducation} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
-                <Plus size={18} /> Add Education
-              </button>
-            </div>
-          )}
-
-          {/* ─── Skills ─── */}
-          {activeTab === 'skills' && (
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-medium text-gray-700">Technical Skills <span className="text-gray-400 font-normal">(comma separated)</span></label>
-                  <button onClick={handleSuggestSkills} className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">✨ AI Suggest</button>
-                </div>
-                <textarea rows={3} value={skills.technical.join(', ')} onChange={e => updateSkills('technical', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} placeholder="React, Node.js, TypeScript..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Soft Skills <span className="text-gray-400 font-normal">(comma separated)</span></label>
-                <textarea rows={2} value={skills.soft.join(', ')} onChange={e => updateSkills('soft', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Languages <span className="text-gray-400 font-normal">(comma separated)</span></label>
-                <textarea rows={2} value={skills.languages.join(', ')} onChange={e => updateSkills('languages', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} />
-              </div>
-            </div>
-          )}
-
-          {/* ─── Projects ─── */}
-          {activeTab === 'projects' && (
-            <div>
-              {(projects as any[]).map((proj, index) => (
-                <div key={proj.id} className="relative group p-5 border border-gray-200 rounded-xl bg-white mb-4">
-                  <button onClick={() => removeProject(proj.id)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
-                    <Trash2 size={18} />
-                  </button>
-                  <h3 className="font-semibold text-gray-800 mb-3 text-sm">Project #{index + 1}</h3>
-                  <div className="space-y-3">
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Project Name</label><input type="text" value={proj.name} onChange={e => updateProject(proj.id, { name: e.target.value })} className={inputCls} /></div>
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Technologies Used</label><input type="text" value={proj.technologies} onChange={e => updateProject(proj.id, { technologies: e.target.value })} className={inputCls} placeholder="React, Node.js, MongoDB..." /></div>
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">GitHub Link</label><input type="url" value={proj.githubLink} onChange={e => updateProject(proj.id, { githubLink: e.target.value })} className={inputCls} /></div>
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Description</label><textarea rows={3} value={proj.description} onChange={e => updateProject(proj.id, { description: e.target.value })} className={inputCls} placeholder="What does the project do?" /></div>
+          {/* ─── Forms or Customize ─── */}
+          {editorMode === 'content' ? (
+            <>
+              {/* ─── Personal ─── */}
+              {activeTab === 'personal' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" value={personalInfo.fullName} onChange={e => updatePersonalInfo({ fullName: e.target.value })} className={inputCls} />
                   </div>
-                </div>
-              ))}
-              <button onClick={addProject} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
-                <Plus size={18} /> Add Project
-              </button>
-            </div>
-          )}
-
-          {/* ─── Certifications ─── */}
-          {activeTab === 'certifications' && (
-            <div>
-              {(certifications as any[]).map((cert, index) => (
-                <div key={cert.id} className="relative group p-5 border border-gray-200 rounded-xl bg-white mb-4">
-                  <button onClick={() => removeCertification(cert.id)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
-                    <Trash2 size={18} />
-                  </button>
-                  <h3 className="font-semibold text-gray-800 mb-3 text-sm">Certification #{index + 1}</h3>
-                  <div className="space-y-3">
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Certificate Name</label><input type="text" value={cert.name} onChange={e => updateCertification(cert.id, { name: e.target.value })} className={inputCls} /></div>
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Issuing Organization</label><input type="text" value={cert.organization} onChange={e => updateCertification(cert.id, { organization: e.target.value })} className={inputCls} placeholder="e.g. Google, AWS, Coursera..." /></div>
-                    <div><label className="block text-xs font-medium text-gray-600 mb-1">Date Issued</label><input type="text" value={cert.date} onChange={e => updateCertification(cert.id, { date: e.target.value })} className={inputCls} placeholder="e.g. Mar 2024" /></div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" value={personalInfo.email} onChange={e => updatePersonalInfo({ email: e.target.value })} className={inputCls} />
                   </div>
-                </div>
-              ))}
-              <button onClick={addCertification} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
-                <Plus size={18} /> Add Certification
-              </button>
-            </div>
-          )}
-
-          {/* ─── Job Tailor ─── */}
-          {activeTab === 'tailor' && (
-            <div className="space-y-5">
-              <p className="text-sm text-gray-500">Paste a job description and the AI will analyze your resume and suggest specific improvements to match the role.</p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
-                <textarea rows={7} value={jobDescription} onChange={e => setJobDescription(e.target.value)} className={inputCls} placeholder="Paste the job posting here..." />
-              </div>
-              <button onClick={handleTailorResume} disabled={isTailoring} className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
-                <Target size={16} /> {isTailoring ? 'Analyzing...' : '✨ Tailor My Resume'}
-              </button>
-              {tailorSuggestions.length > 0 && (
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <h3 className="font-semibold text-amber-800 mb-2 flex items-center gap-2"><CheckCircle size={16} /> AI Suggestions</h3>
-                  <ul className="space-y-2">
-                    {tailorSuggestions.map((s, i) => (
-                      <li key={i} className="text-sm text-amber-700 flex items-start gap-2">
-                        <span className="mt-0.5 text-amber-500">•</span> {s}
-                      </li>
-                    ))}
-                  </ul>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="tel" value={personalInfo.phone} onChange={e => updatePersonalInfo({ phone: e.target.value })} className={inputCls} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <input type="text" value={personalInfo.address} onChange={e => updatePersonalInfo({ address: e.target.value })} className={inputCls} placeholder="City, State, Country" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+                    <input type="url" value={personalInfo.linkedin} onChange={e => updatePersonalInfo({ linkedin: e.target.value })} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
+                    <input type="url" value={personalInfo.github} onChange={e => updatePersonalInfo({ github: e.target.value })} className={inputCls} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio Website</label>
+                    <input type="url" value={personalInfo.portfolio} onChange={e => updatePersonalInfo({ portfolio: e.target.value })} className={inputCls} />
+                  </div>
                 </div>
               )}
-              {tailoredSummary && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-green-800">✅ AI-Tailored Summary</h3>
-                    <button onClick={() => updateSummary(tailoredSummary)} className="text-xs font-bold text-green-700 hover:text-green-900 border border-green-300 px-2 py-1 rounded-lg">Use This</button>
-                  </div>
-                  <p className="text-sm text-green-700 leading-relaxed">{tailoredSummary}</p>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* ─── Cover Letter ─── */}
-          {activeTab === 'coverLetter' && (
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
-                <textarea rows={6} value={jobDescription} onChange={e => setJobDescription(e.target.value)} className={inputCls} placeholder="Paste the job description here..." />
-                <button onClick={handleGenerateCoverLetter} disabled={isGeneratingCoverLetter} className="mt-3 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
-                  <Sparkles size={16} /> {isGeneratingCoverLetter ? 'Generating...' : '✨ Generate Cover Letter'}
-                </button>
-              </div>
-              {coverLetter && (
+              {/* ─── Summary ─── */}
+              {activeTab === 'summary' && (
                 <div>
-                  <h3 className="text-base font-bold text-gray-800 mb-2">Generated Cover Letter</h3>
-                  <textarea rows={12} value={coverLetter} onChange={e => setCoverLetter(e.target.value)} className={inputCls} />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Professional Summary</label>
+                  <textarea rows={6} value={summary} onChange={e => updateSummary(e.target.value)} className={inputCls} placeholder="Write a brief summary..." />
+                  <button onClick={handleGenerateAISummary} disabled={isGeneratingAI} className="mt-4 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
+                    <Sparkles size={16} /> {isGeneratingAI ? 'Generating...' : '✨ Generate with AI'}
+                  </button>
                 </div>
               )}
-            </div>
+
+              {/* ─── Experience ─── */}
+              {activeTab === 'experience' && (
+                <div>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndExperience}>
+                    <SortableContext items={experience.map(e => e.id)} strategy={verticalListSortingStrategy}>
+                      {experience.map((exp, index) => (
+                        <SortableItem key={exp.id} id={exp.id} onRemove={() => removeExperience(exp.id)}>
+                          <h3 className="font-semibold text-gray-800 mb-3 text-sm">Experience #{index + 1}</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Company</label><input type="text" value={exp.company} onChange={e => updateExperience(exp.id, { company: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Position</label><input type="text" value={exp.position} onChange={e => updateExperience(exp.id, { position: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label><input type="text" placeholder="Jan 2020" value={exp.startDate} onChange={e => updateExperience(exp.id, { startDate: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">End Date</label><input type="text" placeholder="Present" value={exp.endDate} onChange={e => updateExperience(exp.id, { endDate: e.target.value })} className={inputCls} /></div>
+                          </div>
+                          <div className="flex justify-between items-center mb-1">
+                            <label className="block text-xs font-medium text-gray-600">Description</label>
+                            <button onClick={() => handleImproveBullet(exp.id, exp.description)} className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">✨ AI Improve</button>
+                          </div>
+                          <textarea rows={3} value={exp.description} onChange={e => updateExperience(exp.id, { description: e.target.value })} className={inputCls} placeholder="Responsibilities and achievements..." />
+                        </SortableItem>
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                  <button onClick={addExperience} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
+                    <Plus size={18} /> Add Experience
+                  </button>
+                </div>
+              )}
+
+              {/* ─── Education ─── */}
+              {activeTab === 'education' && (
+                <div>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndEducation}>
+                    <SortableContext items={education.map(e => e.id)} strategy={verticalListSortingStrategy}>
+                      {education.map((edu, index) => (
+                        <SortableItem key={edu.id} id={edu.id} onRemove={() => removeEducation(edu.id)}>
+                          <h3 className="font-semibold text-gray-800 mb-3 text-sm">Education #{index + 1}</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="col-span-2"><label className="block text-xs font-medium text-gray-600 mb-1">School / University</label><input type="text" value={edu.school} onChange={e => updateEducation(edu.id, { school: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Degree</label><input type="text" value={edu.degree} onChange={e => updateEducation(edu.id, { degree: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Grade / CGPA</label><input type="text" value={edu.grade} onChange={e => updateEducation(edu.id, { grade: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label><input type="text" placeholder="2018" value={edu.startDate} onChange={e => updateEducation(edu.id, { startDate: e.target.value })} className={inputCls} /></div>
+                            <div><label className="block text-xs font-medium text-gray-600 mb-1">End Date</label><input type="text" placeholder="2022" value={edu.endDate} onChange={e => updateEducation(edu.id, { endDate: e.target.value })} className={inputCls} /></div>
+                          </div>
+                        </SortableItem>
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                  <button onClick={addEducation} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
+                    <Plus size={18} /> Add Education
+                  </button>
+                </div>
+              )}
+
+              {/* ─── Skills ─── */}
+              {activeTab === 'skills' && (
+                <div className="space-y-5">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-sm font-medium text-gray-700">Technical Skills <span className="text-gray-400 font-normal">(comma separated)</span></label>
+                      <button onClick={handleSuggestSkills} className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">✨ AI Suggest</button>
+                    </div>
+                    <textarea rows={3} value={skills.technical.join(', ')} onChange={e => updateSkills('technical', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} placeholder="React, Node.js, TypeScript..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Soft Skills <span className="text-gray-400 font-normal">(comma separated)</span></label>
+                    <textarea rows={2} value={skills.soft.join(', ')} onChange={e => updateSkills('soft', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Languages <span className="text-gray-400 font-normal">(comma separated)</span></label>
+                    <textarea rows={2} value={skills.languages.join(', ')} onChange={e => updateSkills('languages', e.target.value.split(',').map(s => s.trimStart()))} className={inputCls} />
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Projects ─── */}
+              {activeTab === 'projects' && (
+                <div>
+                  {(projects as any[]).map((proj, index) => (
+                    <div key={proj.id} className="relative group p-5 border border-gray-200 rounded-xl bg-white mb-4">
+                      <button onClick={() => removeProject(proj.id)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
+                        <Trash2 size={18} />
+                      </button>
+                      <h3 className="font-semibold text-gray-800 mb-3 text-sm">Project #{index + 1}</h3>
+                      <div className="space-y-3">
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Project Name</label><input type="text" value={proj.name} onChange={e => updateProject(proj.id, { name: e.target.value })} className={inputCls} /></div>
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Technologies Used</label><input type="text" value={proj.technologies} onChange={e => updateProject(proj.id, { technologies: e.target.value })} className={inputCls} placeholder="React, Node.js, MongoDB..." /></div>
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">GitHub Link</label><input type="url" value={proj.githubLink} onChange={e => updateProject(proj.id, { githubLink: e.target.value })} className={inputCls} /></div>
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Description</label><textarea rows={3} value={proj.description} onChange={e => updateProject(proj.id, { description: e.target.value })} className={inputCls} placeholder="What does the project do?" /></div>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={addProject} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
+                    <Plus size={18} /> Add Project
+                  </button>
+                </div>
+              )}
+
+              {/* ─── Certifications ─── */}
+              {activeTab === 'certifications' && (
+                <div>
+                  {(certifications as any[]).map((cert, index) => (
+                    <div key={cert.id} className="relative group p-5 border border-gray-200 rounded-xl bg-white mb-4">
+                      <button onClick={() => removeCertification(cert.id)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
+                        <Trash2 size={18} />
+                      </button>
+                      <h3 className="font-semibold text-gray-800 mb-3 text-sm">Certification #{index + 1}</h3>
+                      <div className="space-y-3">
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Certificate Name</label><input type="text" value={cert.name} onChange={e => updateCertification(cert.id, { name: e.target.value })} className={inputCls} /></div>
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Issuing Organization</label><input type="text" value={cert.organization} onChange={e => updateCertification(cert.id, { organization: e.target.value })} className={inputCls} placeholder="e.g. Google, AWS, Coursera..." /></div>
+                        <div><label className="block text-xs font-medium text-gray-600 mb-1">Date Issued</label><input type="text" value={cert.date} onChange={e => updateCertification(cert.id, { date: e.target.value })} className={inputCls} placeholder="e.g. Mar 2024" /></div>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={addCertification} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-teal-500 hover:text-teal-600 transition flex items-center justify-center gap-2 text-sm">
+                    <Plus size={18} /> Add Certification
+                  </button>
+                </div>
+              )}
+
+              {/* ─── Job Tailor ─── */}
+              {activeTab === 'tailor' && (
+                <div className="space-y-5">
+                  <p className="text-sm text-gray-500">Paste a job description and the AI will analyze your resume and suggest specific improvements to match the role.</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+                    <textarea rows={7} value={jobDescription} onChange={e => setJobDescription(e.target.value)} className={inputCls} placeholder="Paste the job posting here..." />
+                  </div>
+                  <button onClick={handleTailorResume} disabled={isTailoring} className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
+                    <Target size={16} /> {isTailoring ? 'Analyzing...' : '✨ Tailor My Resume'}
+                  </button>
+                  {tailorSuggestions.length > 0 && (
+                    <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                      <h3 className="font-semibold text-amber-800 mb-2 flex items-center gap-2"><CheckCircle size={16} /> AI Suggestions</h3>
+                      <ul className="space-y-2">
+                        {tailorSuggestions.map((s, i) => (
+                          <li key={i} className="text-sm text-amber-700 flex items-start gap-2">
+                            <span className="mt-0.5 text-amber-500">•</span> {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {tailoredSummary && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-green-800">✅ AI-Tailored Summary</h3>
+                        <button onClick={() => updateSummary(tailoredSummary)} className="text-xs font-bold text-green-700 hover:text-green-900 border border-green-300 px-2 py-1 rounded-lg">Use This</button>
+                      </div>
+                      <p className="text-sm text-green-700 leading-relaxed">{tailoredSummary}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── Cover Letter ─── */}
+              {activeTab === 'coverLetter' && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+                    <textarea rows={6} value={jobDescription} onChange={e => setJobDescription(e.target.value)} className={inputCls} placeholder="Paste the job description here..." />
+                    <button onClick={handleGenerateCoverLetter} disabled={isGeneratingCoverLetter} className="mt-3 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-2 disabled:opacity-50">
+                      <Sparkles size={16} /> {isGeneratingCoverLetter ? 'Generating...' : '✨ Generate Cover Letter'}
+                    </button>
+                  </div>
+                  {coverLetter && (
+                    <div>
+                      <h3 className="text-base font-bold text-gray-800 mb-2">Generated Cover Letter</h3>
+                      <textarea rows={12} value={coverLetter} onChange={e => setCoverLetter(e.target.value)} className={inputCls} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* ─── Customize Layout ─── */}
+              {activeCustomizeTab === 'layout' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Column Structure</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => updateCustomization({ layout: '1-column' })}
+                        className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition ${
+                          customization.layout === '1-column'
+                            ? 'border-teal-500 bg-teal-50/50 text-teal-800'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        <div className="w-12 h-8 border border-current rounded bg-white flex items-center justify-center p-1 gap-1">
+                          <div className="w-full h-full bg-current opacity-20 rounded-sm" />
+                        </div>
+                        <span className="text-xs font-bold">Single Column</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => updateCustomization({ layout: '2-column' })}
+                        className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition ${
+                          customization.layout === '2-column'
+                            ? 'border-teal-500 bg-teal-50/50 text-teal-800'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        <div className="w-12 h-8 border border-current rounded bg-white flex items-center justify-center p-1 gap-1">
+                          <div className="w-1/3 h-full bg-current opacity-30 rounded-sm" />
+                          <div className="w-2/3 h-full bg-current opacity-20 rounded-sm" />
+                        </div>
+                        <span className="text-xs font-bold">Two Columns</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {customization.layout === '2-column' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Column Width Ratio</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: '1/3-2/3', label: '1/3 - 2/3' },
+                          { id: '1/2-1/2', label: '1/2 - 1/2' },
+                          { id: '2/3-1/3', label: '2/3 - 1/3' },
+                        ].map(ratio => (
+                          <button
+                            key={ratio.id}
+                            onClick={() => updateCustomization({ columnRatio: ratio.id as any })}
+                            className={`py-2 px-3 text-xs font-medium border rounded-lg text-center transition ${
+                              customization.columnRatio === ratio.id
+                                ? 'border-teal-500 bg-teal-50 text-teal-700 font-semibold'
+                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {ratio.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section Organizer */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Arrange Sections</label>
+                    
+                    {customization.layout === '2-column' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Sidebar sections list */}
+                        <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sidebar Column</div>
+                          <div className="space-y-2">
+                            {(customization.sidebarSections || []).map((secId, index) => (
+                              <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                                <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                                <div className="flex gap-1 items-center">
+                                  <button disabled={index === 0} onClick={() => reorderSectionList('sidebarSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                                  <button disabled={index === (customization.sidebarSections || []).length - 1} onClick={() => reorderSectionList('sidebarSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                                  <button onClick={() => moveSection(secId, 'main')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 ml-1">&rarr;</button>
+                                </div>
+                              </div>
+                            ))}
+                            {(customization.sidebarSections || []).length === 0 && (
+                              <div className="text-center py-6 text-xs text-gray-400 italic">No sections in Sidebar.</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Main sections list */}
+                        <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Main Column</div>
+                          <div className="space-y-2">
+                            {(customization.mainSections || []).map((secId, index) => (
+                              <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                                <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                                <div className="flex gap-1 items-center">
+                                  <button onClick={() => moveSection(secId, 'sidebar')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 mr-1">&larr;</button>
+                                  <button disabled={index === 0} onClick={() => reorderSectionList('mainSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                                  <button disabled={index === (customization.mainSections || []).length - 1} onClick={() => reorderSectionList('mainSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                                </div>
+                              </div>
+                            ))}
+                            {(customization.mainSections || []).length === 0 && (
+                              <div className="text-center py-6 text-xs text-gray-400 italic">No sections in Main column.</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50 space-y-2">
+                        {(customization.sectionOrder || []).map((secId, index) => (
+                          <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                            <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                            <div className="flex gap-1">
+                              <button disabled={index === 0} onClick={() => reorderSectionList('sectionOrder', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                              <button disabled={index === (customization.sectionOrder || []).length - 1} onClick={() => reorderSectionList('sectionOrder', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Customize Typography ─── */}
+              {activeCustomizeTab === 'typography' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Font Family</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: 'inter', name: 'Inter', desc: 'Modern & Clean', font: '"Inter", sans-serif' },
+                        { id: 'roboto', name: 'Roboto', desc: 'Neutral & Readable', font: '"Roboto", sans-serif' },
+                        { id: 'outfit', name: 'Outfit', desc: 'Elegant & Rounded', font: '"Outfit", sans-serif' },
+                        { id: 'merriweather', name: 'Merriweather', desc: 'Classic Serif', font: '"Merriweather", serif' },
+                        { id: 'playfair', name: 'Playfair Display', desc: 'Stylish & Editorial', font: '"Playfair Display", serif' },
+                        { id: 'fira-code', name: 'Fira Code', desc: 'Technical & Mono', font: '"Fira Code", monospace' },
+                      ].map(font => (
+                        <button
+                          key={font.id}
+                          onClick={() => updateCustomization({ fontFamily: font.id as any })}
+                          className={`p-3 border rounded-xl text-left transition ${
+                            customization.fontFamily === font.id
+                              ? 'border-teal-500 bg-teal-50/50 text-teal-800'
+                              : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                          }`}
+                        >
+                          <div className="text-sm font-semibold" style={{ fontFamily: font.font }}>{font.name}</div>
+                          <div className="text-[10px] opacity-75">{font.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Base Font Size</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { id: 'xs', label: 'Extra Small' },
+                        { id: 'sm', label: 'Small (Rec.)' },
+                        { id: 'md', label: 'Medium' },
+                        { id: 'lg', label: 'Large' },
+                      ].map(size => (
+                        <button
+                          key={size.id}
+                          onClick={() => updateCustomization({ fontSize: size.id as any })}
+                          className={`py-2.5 text-xs font-semibold border rounded-lg text-center transition ${
+                            customization.fontSize === size.id
+                              ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {size.id.toUpperCase()}
+                          <div className="text-[9px] font-normal opacity-75">{size.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Line Height</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'compact', label: 'Compact', desc: '1.2' },
+                        { id: 'normal', label: 'Normal', desc: '1.5' },
+                        { id: 'spacious', label: 'Spacious', desc: '1.8' },
+                      ].map(lh => (
+                        <button
+                          key={lh.id}
+                          onClick={() => updateCustomization({ lineHeight: lh.id as any })}
+                          className={`py-2 px-3 text-xs font-semibold border rounded-lg text-center transition ${
+                            customization.lineHeight === lh.id
+                              ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {lh.label}
+                          <div className="text-[9px] font-normal opacity-75">{lh.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Customize Colors ─── */}
+              {activeCustomizeTab === 'colors' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Color Presets</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        { name: 'Teal Dream', hex: '#0d9488' },
+                        { name: 'Midnight Navy', hex: '#1e3a8a' },
+                        { name: 'Forest Green', hex: '#15803d' },
+                        { name: 'Crimson Wine', hex: '#991b1b' },
+                        { name: 'Royal Purple', hex: '#6d28d9' },
+                        { name: 'Classic Black', hex: '#000000' },
+                      ].map(preset => (
+                        <button
+                          key={preset.hex}
+                          onClick={() => {
+                            updateTemplateColor(preset.hex);
+                            updateCustomization({ accentColor: preset.hex });
+                          }}
+                          className="p-2 border border-gray-200 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition text-left"
+                        >
+                          <div className="w-5 h-5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: preset.hex }} />
+                          <div className="text-xs font-semibold text-gray-700 truncate">{preset.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="block text-sm font-semibold text-gray-700">Custom Colors</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1 font-semibold">Theme Accent</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={customization.accentColor || templateColor}
+                            onChange={e => {
+                              updateTemplateColor(e.target.value);
+                              updateCustomization({ accentColor: e.target.value });
+                            }}
+                            className="h-8 w-14 p-0.5 border border-gray-200 rounded-lg cursor-pointer bg-gray-50"
+                          />
+                          <span className="text-xs font-mono">{customization.accentColor || templateColor}</span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1 font-semibold">Primary Text</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={customization.textColor || '#1f2937'}
+                            onChange={e => updateCustomization({ textColor: e.target.value })}
+                            className="h-8 w-14 p-0.5 border border-gray-200 rounded-lg cursor-pointer bg-gray-50"
+                          />
+                          <span className="text-xs font-mono">{customization.textColor || '#1f2937'}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1 font-semibold">Background</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={customization.bgColor || '#ffffff'}
+                            onChange={e => updateCustomization({ bgColor: e.target.value })}
+                            className="h-8 w-14 p-0.5 border border-gray-200 rounded-lg cursor-pointer bg-gray-50"
+                          />
+                          <span className="text-xs font-mono">{customization.bgColor || '#ffffff'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <button
+                      onClick={() => {
+                        updateTemplateColor('#0d9488');
+                        updateCustomization({
+                          accentColor: '#0d9488',
+                          textColor: '#1f2937',
+                          bgColor: '#ffffff',
+                        });
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-teal-600 transition font-semibold"
+                    >
+                      <RefreshCw size={12} /> Reset to Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Customize Margins & Spacing ─── */}
+              {activeCustomizeTab === 'spacing' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Page Margins</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'compact', label: 'Compact', desc: '16px' },
+                        { id: 'normal', label: 'Normal', desc: '32px' },
+                        { id: 'spacious', label: 'Spacious', desc: '48px' },
+                      ].map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => updateCustomization({ pagePadding: p.id as any })}
+                          className={`py-2 px-3 text-xs font-semibold border rounded-lg text-center transition ${
+                            customization.pagePadding === p.id
+                              ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {p.label}
+                          <div className="text-[9px] font-normal opacity-75">{p.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Section Spacing</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'compact', label: 'Compact', desc: '12px' },
+                        { id: 'normal', label: 'Normal', desc: '24px' },
+                        { id: 'spacious', label: 'Spacious', desc: '36px' },
+                      ].map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => updateCustomization({ sectionSpacing: s.id as any })}
+                          className={`py-2 px-3 text-xs font-semibold border rounded-lg text-center transition ${
+                            customization.sectionSpacing === s.id
+                              ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {s.label}
+                          <div className="text-[9px] font-normal opacity-75">{s.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Item Spacing</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'compact', label: 'Compact', desc: '4px' },
+                        { id: 'normal', label: 'Normal', desc: '12px' },
+                        { id: 'spacious', label: 'Spacious', desc: '20px' },
+                      ].map(i => (
+                        <button
+                          key={i.id}
+                          onClick={() => updateCustomization({ itemSpacing: i.id as any })}
+                          className={`py-2 px-3 text-xs font-semibold border rounded-lg text-center transition ${
+                            customization.itemSpacing === i.id
+                              ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i.label}
+                          <div className="text-[9px] font-normal opacity-75">{i.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Customize Headings & Visibility ─── */}
+              {activeCustomizeTab === 'headers' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Section Header Design</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { id: 'default', label: 'Standard Text', desc: 'Simple text colored by theme accent' },
+                        { id: 'underline', label: 'Underlined', desc: 'Line decoration beneath heading' },
+                        { id: 'uppercase', label: 'All Uppercase', desc: 'All caps headings' },
+                        { id: 'colored-bg', label: 'Banner Badge', desc: 'Solid filled banner with white text' },
+                        { id: 'border-left', label: 'Left Border Accent', desc: 'Thick vertical accent border on left' },
+                      ].map(style => (
+                        <button
+                          key={style.id}
+                          onClick={() => updateCustomization({ headingStyle: style.id as any })}
+                          className={`p-3 border rounded-xl text-left transition flex flex-col gap-0.5 ${
+                            customization.headingStyle === style.id
+                              ? 'border-teal-500 bg-teal-50/50 text-teal-800'
+                              : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                          }`}
+                        >
+                          <span className="text-sm font-semibold">{style.label}</span>
+                          <span className="text-[10px] opacity-75">{style.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-4 border-t">
+                    <label className="block text-sm font-semibold text-gray-700">Display Settings</label>
+                    
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition border border-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={customization.showIcons !== false}
+                          onChange={e => updateCustomization({ showIcons: e.target.checked })}
+                          className="h-4 w-4 rounded text-teal-600 border-gray-300 focus:ring-teal-500"
+                        />
+                        <div>
+                          <span className="text-xs font-semibold text-gray-800 block">Show Contact Icons</span>
+                          <span className="text-[10px] text-gray-500">Render contact badges/emojis (✉, 📞, 📍, etc.)</span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition border border-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={customization.showDates !== false}
+                          onChange={e => updateCustomization({ showDates: e.target.checked })}
+                          className="h-4 w-4 rounded text-teal-600 border-gray-300 focus:ring-teal-500"
+                        />
+                        <div>
+                          <span className="text-xs font-semibold text-gray-800 block">Show Section Dates</span>
+                          <span className="text-[10px] text-gray-500 font-normal">Render start and end dates next to items</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Navigation Buttons */}
           <div className="mt-8 pt-5 border-t border-gray-100 flex justify-between items-center">
-            <button
-              onClick={() => { const i = tabs.findIndex(t => t.id === activeTab); if (i > 0) setActiveTab(tabs[i - 1].id); }}
-              disabled={activeTab === tabs[0].id}
-              className="px-5 py-2 rounded-xl font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm disabled:opacity-0"
-            >
-              &larr; Previous
-            </button>
-            <button
-              onClick={() => { const i = tabs.findIndex(t => t.id === activeTab); if (i < tabs.length - 1) setActiveTab(tabs[i + 1].id); }}
-              disabled={activeTab === tabs[tabs.length - 1].id}
-              className="px-5 py-2 rounded-xl font-medium bg-teal-600 text-white hover:bg-teal-700 transition shadow-sm text-sm disabled:opacity-0"
-            >
-              Next Step &rarr;
-            </button>
+            {editorMode === 'content' ? (
+              <>
+                <button
+                  onClick={() => { const i = tabs.findIndex(t => t.id === activeTab); if (i > 0) setActiveTab(tabs[i - 1].id); }}
+                  disabled={activeTab === tabs[0].id}
+                  className="px-5 py-2 rounded-xl font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm disabled:opacity-0"
+                >
+                  &larr; Previous
+                </button>
+                <button
+                  onClick={() => { const i = tabs.findIndex(t => t.id === activeTab); if (i < tabs.length - 1) setActiveTab(tabs[i + 1].id); }}
+                  disabled={activeTab === tabs[tabs.length - 1].id}
+                  className="px-5 py-2 rounded-xl font-medium bg-teal-600 text-white hover:bg-teal-700 transition shadow-sm text-sm disabled:opacity-0"
+                >
+                  Next Step &rarr;
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => { const i = customizeTabs.findIndex(t => t.id === activeCustomizeTab); if (i > 0) setActiveCustomizeTab(customizeTabs[i - 1].id as any); }}
+                  disabled={activeCustomizeTab === customizeTabs[0].id}
+                  className="px-5 py-2 rounded-xl font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm disabled:opacity-0"
+                >
+                  &larr; Previous
+                </button>
+                <button
+                  onClick={() => { const i = customizeTabs.findIndex(t => t.id === activeCustomizeTab); if (i < customizeTabs.length - 1) setActiveCustomizeTab(customizeTabs[i + 1].id as any); }}
+                  disabled={activeCustomizeTab === customizeTabs[customizeTabs.length - 1].id}
+                  className="px-5 py-2 rounded-xl font-medium bg-teal-600 text-white hover:bg-teal-700 transition shadow-sm text-sm disabled:opacity-0"
+                >
+                  Next Step &rarr;
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>

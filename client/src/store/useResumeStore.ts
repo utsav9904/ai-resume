@@ -33,6 +33,26 @@ export interface Certification {
   date: string;
 }
 
+export interface CustomizationSettings {
+  fontFamily: 'inter' | 'roboto' | 'outfit' | 'merriweather' | 'playfair' | 'fira-code';
+  fontSize: 'xs' | 'sm' | 'md' | 'lg';
+  lineHeight: 'compact' | 'normal' | 'spacious';
+  pagePadding: 'compact' | 'normal' | 'spacious';
+  sectionSpacing: 'compact' | 'normal' | 'spacious';
+  itemSpacing: 'compact' | 'normal' | 'spacious';
+  headingStyle: 'default' | 'underline' | 'uppercase' | 'colored-bg' | 'border-left';
+  layout: '1-column' | '2-column';
+  sectionOrder: string[];
+  sidebarSections: string[];
+  mainSections: string[];
+  columnRatio: '1/3-2/3' | '1/2-1/2' | '2/3-1/3';
+  accentColor: string;
+  textColor: string;
+  bgColor: string;
+  showIcons: boolean;
+  showDates: boolean;
+}
+
 export interface ResumeState {
   title: string;
   personalInfo: {
@@ -56,6 +76,7 @@ export interface ResumeState {
   certifications: Certification[];
   template: string;
   templateColor: string;
+  customization: CustomizationSettings;
   updateTitle: (title: string) => void;
   updatePersonalInfo: (data: Partial<ResumeState['personalInfo']>) => void;
   updateSummary: (summary: string) => void;
@@ -69,6 +90,7 @@ export interface ResumeState {
   reorderEducation: (startIndex: number, endIndex: number) => void;
   updateSkills: (category: 'technical' | 'soft' | 'languages', values: string[]) => void;
   updateTemplateColor: (color: string) => void;
+  updateCustomization: (settings: Partial<CustomizationSettings>) => void;
   addProject: () => void;
   updateProject: (id: string, data: Partial<Project>) => void;
   removeProject: (id: string) => void;
@@ -78,6 +100,26 @@ export interface ResumeState {
   setResume: (data: Partial<ResumeState>) => void;
   resetResume: () => void;
 }
+
+const defaultCustomization: CustomizationSettings = {
+  fontFamily: 'inter',
+  fontSize: 'sm',
+  lineHeight: 'normal',
+  pagePadding: 'normal',
+  sectionSpacing: 'normal',
+  itemSpacing: 'normal',
+  headingStyle: 'default',
+  layout: '1-column',
+  sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'],
+  sidebarSections: ['skills', 'certifications'],
+  mainSections: ['summary', 'experience', 'education', 'projects'],
+  columnRatio: '1/3-2/3',
+  accentColor: '#0d9488',
+  textColor: '#1f2937',
+  bgColor: '#ffffff',
+  showIcons: true,
+  showDates: true,
+};
 
 const defaultState = {
   title: 'Untitled Resume',
@@ -90,6 +132,7 @@ const defaultState = {
   certifications: [],
   template: 'modern',
   templateColor: '#0d9488',
+  customization: defaultCustomization,
 };
 
 export const useResumeStore = create<ResumeState>((set) => ({
@@ -135,7 +178,14 @@ export const useResumeStore = create<ResumeState>((set) => ({
     skills: { ...state.skills, [category]: values }
   })),
 
-  updateTemplateColor: (color) => set({ templateColor: color }),
+  updateTemplateColor: (color) => set((state) => ({
+    templateColor: color,
+    customization: { ...state.customization, accentColor: color }
+  })),
+
+  updateCustomization: (data) => set((state) => ({
+    customization: { ...state.customization, ...data }
+  })),
 
   addProject: () => set((state) => ({
     projects: [...state.projects, { id: crypto.randomUUID(), name: '', description: '', technologies: '', githubLink: '' }]
@@ -157,6 +207,12 @@ export const useResumeStore = create<ResumeState>((set) => ({
     certifications: state.certifications.filter((c: any) => c.id !== id)
   })),
 
-  setResume: (data) => set((state) => ({ ...state, ...data })),
+  setResume: (data) => set((state) => {
+    // Merge customization properly if it exists in data
+    const customization = data.customization
+      ? { ...state.customization, ...data.customization }
+      : state.customization;
+    return { ...state, ...data, customization };
+  }),
   resetResume: () => set({ ...defaultState }),
 }));

@@ -45,6 +45,25 @@ export interface IResume extends Document {
   }>;
   template: string;
   templateColor: string;
+  customization?: {
+    fontFamily?: string;
+    fontSize?: string;
+    lineHeight?: string;
+    pagePadding?: string;
+    sectionSpacing?: string;
+    itemSpacing?: string;
+    headingStyle?: string;
+    layout?: string;
+    sectionOrder?: string[];
+    sidebarSections?: string[];
+    mainSections?: string[];
+    columnRatio?: string;
+    accentColor?: string;
+    textColor?: string;
+    bgColor?: string;
+    showIcons?: boolean;
+    showDates?: boolean;
+  };
 }
 
 const ResumeSchema: Schema = new Schema(
@@ -101,6 +120,25 @@ const ResumeSchema: Schema = new Schema(
     ],
     template: { type: String, default: 'modern' },
     templateColor: { type: String, default: '#0d9488' },
+    customization: {
+      fontFamily: { type: String, default: 'inter' },
+      fontSize: { type: String, default: 'sm' },
+      lineHeight: { type: String, default: 'normal' },
+      pagePadding: { type: String, default: 'normal' },
+      sectionSpacing: { type: String, default: 'normal' },
+      itemSpacing: { type: String, default: 'normal' },
+      headingStyle: { type: String, default: 'default' },
+      layout: { type: String, default: '1-column' },
+      sectionOrder: [{ type: String }],
+      sidebarSections: [{ type: String }],
+      mainSections: [{ type: String }],
+      columnRatio: { type: String, default: '1/3-2/3' },
+      accentColor: { type: String, default: '#0d9488' },
+      textColor: { type: String, default: '#1f2937' },
+      bgColor: { type: String, default: '#ffffff' },
+      showIcons: { type: Boolean, default: true },
+      showDates: { type: Boolean, default: true },
+    },
   },
   { timestamps: true }
 );
