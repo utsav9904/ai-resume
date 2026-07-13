@@ -22,7 +22,6 @@ export const generatePDF = async (elementId: string, filename: string = 'resume.
     });
 
     const a4Width = 210;
-    const a4Height = 297;
     
     // Scale factor to map element pixels to canvas pixels
     const scale = canvas.width / element.clientWidth;

@@ -117,6 +117,14 @@ const Builder = () => {
     updateCustomization({ [listKey]: list });
   };
 
+  const togglePageBreak = (sectionId: string) => {
+    const pageBreaks = customization.pageBreaks || [];
+    const nextPageBreaks = pageBreaks.includes(sectionId)
+      ? pageBreaks.filter((id) => id !== sectionId)
+      : [...pageBreaks, sectionId];
+    updateCustomization({ pageBreaks: nextPageBreaks });
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -683,16 +691,22 @@ const Builder = () => {
                         <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
                           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sidebar Column</div>
                           <div className="space-y-2">
-                            {(customization.sidebarSections || []).map((secId, index) => (
-                              <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
-                                <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
-                                <div className="flex gap-1 items-center">
-                                  <button disabled={index === 0} onClick={() => reorderSectionList('sidebarSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
-                                  <button disabled={index === (customization.sidebarSections || []).length - 1} onClick={() => reorderSectionList('sidebarSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
-                                  <button onClick={() => moveSection(secId, 'main')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 ml-1">&rarr;</button>
+                            {(customization.sidebarSections || []).map((secId, index) => {
+                              const isPageBreak = (customization.pageBreaks || []).includes(secId);
+                              return (
+                                <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                                  <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                                  <div className="flex gap-1 items-center">
+                                    <button disabled={index === 0} onClick={() => reorderSectionList('sidebarSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                                    <button disabled={index === (customization.sidebarSections || []).length - 1} onClick={() => reorderSectionList('sidebarSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                                    <button onClick={() => moveSection(secId, 'main')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 ml-1">&rarr;</button>
+                                    <button type="button" onClick={() => togglePageBreak(secId)} className={`text-[0.65rem] font-semibold px-2 py-1 rounded ${isPageBreak ? 'bg-teal-600 text-white border border-teal-600' : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'}`}>
+                                      {isPageBreak ? 'Page break' : 'Add break'}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             {(customization.sidebarSections || []).length === 0 && (
                               <div className="text-center py-6 text-xs text-gray-400 italic">No sections in Sidebar.</div>
                             )}
@@ -703,16 +717,22 @@ const Builder = () => {
                         <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
                           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Main Column</div>
                           <div className="space-y-2">
-                            {(customization.mainSections || []).map((secId, index) => (
-                              <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
-                                <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
-                                <div className="flex gap-1 items-center">
-                                  <button onClick={() => moveSection(secId, 'sidebar')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 mr-1">&larr;</button>
-                                  <button disabled={index === 0} onClick={() => reorderSectionList('mainSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
-                                  <button disabled={index === (customization.mainSections || []).length - 1} onClick={() => reorderSectionList('mainSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                            {(customization.mainSections || []).map((secId, index) => {
+                              const isPageBreak = (customization.pageBreaks || []).includes(secId);
+                              return (
+                                <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                                  <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                                  <div className="flex gap-1 items-center">
+                                    <button onClick={() => moveSection(secId, 'sidebar')} className="text-xs font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-100 hover:bg-teal-100 mr-1">&larr;</button>
+                                    <button disabled={index === 0} onClick={() => reorderSectionList('mainSections', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                                    <button disabled={index === (customization.mainSections || []).length - 1} onClick={() => reorderSectionList('mainSections', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                                    <button type="button" onClick={() => togglePageBreak(secId)} className={`text-[0.65rem] font-semibold px-2 py-1 rounded ${isPageBreak ? 'bg-teal-600 text-white border border-teal-600' : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'}`}>
+                                      {isPageBreak ? 'Page break' : 'Add break'}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             {(customization.mainSections || []).length === 0 && (
                               <div className="text-center py-6 text-xs text-gray-400 italic">No sections in Main column.</div>
                             )}
@@ -721,15 +741,21 @@ const Builder = () => {
                       </div>
                     ) : (
                       <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50 space-y-2">
-                        {(customization.sectionOrder || []).map((secId, index) => (
-                          <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
-                            <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
-                            <div className="flex gap-1">
-                              <button disabled={index === 0} onClick={() => reorderSectionList('sectionOrder', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
-                              <button disabled={index === (customization.sectionOrder || []).length - 1} onClick={() => reorderSectionList('sectionOrder', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                        {(customization.sectionOrder || []).map((secId, index) => {
+                          const isPageBreak = (customization.pageBreaks || []).includes(secId);
+                          return (
+                            <div key={secId} className="flex justify-between items-center bg-white p-2.5 border border-gray-200 rounded-lg shadow-sm">
+                              <span className="text-xs font-medium text-gray-700">{sectionLabels[secId] || secId}</span>
+                              <div className="flex gap-1">
+                                <button disabled={index === 0} onClick={() => reorderSectionList('sectionOrder', index, 'up')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronUp size={14} /></button>
+                                <button disabled={index === (customization.sectionOrder || []).length - 1} onClick={() => reorderSectionList('sectionOrder', index, 'down')} className="p-1 hover:text-teal-600 disabled:opacity-30"><ChevronDown size={14} /></button>
+                                <button type="button" onClick={() => togglePageBreak(secId)} className={`text-[0.65rem] font-semibold px-2 py-1 rounded ${isPageBreak ? 'bg-teal-600 text-white border border-teal-600' : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'}`}>
+                                  {isPageBreak ? 'Page break' : 'Add break'}
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
