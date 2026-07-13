@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 
 export const generatePDF = async (elementId: string, filename: string = 'resume.pdf') => {
