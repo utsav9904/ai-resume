@@ -254,15 +254,33 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderSection = (sectionId: string) => {
+    const pageBreaks = customization.pageBreaks || [];
+    const isPageBreak = pageBreaks.includes(sectionId);
+    
+    let content = null;
     switch (sectionId) {
-      case 'summary': return renderSummary();
-      case 'experience': return renderExperience();
-      case 'education': return renderEducation();
-      case 'skills': return renderSkills();
-      case 'projects': return renderProjects();
-      case 'certifications': return renderCertifications();
-      default: return null;
+      case 'summary': content = renderSummary(); break;
+      case 'experience': content = renderExperience(); break;
+      case 'education': content = renderEducation(); break;
+      case 'skills': content = renderSkills(); break;
+      case 'projects': content = renderProjects(); break;
+      case 'certifications': content = renderCertifications(); break;
+      default: content = null;
     }
+    
+    if (!content) return null;
+    
+    return (
+      <div key={sectionId} className={isPageBreak ? "page-break-before" : ""}>
+        {isPageBreak && (
+          <div className="w-full flex items-center gap-2 py-4 my-2 border-t border-dashed border-gray-300 text-gray-400 text-xs select-none print:hidden">
+            <span className="font-semibold uppercase tracking-wider text-[0.8em]">Page Break</span>
+            <div className="flex-grow border-t border-dashed border-gray-300"></div>
+          </div>
+        )}
+        {content}
+      </div>
+    );
   };
 
   const orderList = customization.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];

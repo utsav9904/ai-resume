@@ -63,6 +63,7 @@ export interface IResume extends Document {
     bgColor?: string;
     showIcons?: boolean;
     showDates?: boolean;
+    pageBreaks?: string[];
   };
 }
 
@@ -138,6 +139,7 @@ const ResumeSchema: Schema = new Schema(
       bgColor: { type: String, default: '#ffffff' },
       showIcons: { type: Boolean, default: true },
       showDates: { type: Boolean, default: true },
+      pageBreaks: [{ type: String }],
     },
   },
   { timestamps: true }

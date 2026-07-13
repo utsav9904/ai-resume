@@ -51,6 +51,7 @@ export interface CustomizationSettings {
   bgColor: string;
   showIcons: boolean;
   showDates: boolean;
+  pageBreaks: string[];
 }
 
 export interface ResumeState {
@@ -119,6 +120,7 @@ const defaultCustomization: CustomizationSettings = {
   bgColor: '#ffffff',
   showIcons: true,
   showDates: true,
+  pageBreaks: [],
 };
 
 const defaultState = {

@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Builder from './pages/Builder/Builder';
 import Landing from './pages/Landing/Landing';
 import Blog from './pages/Blog/Blog';
+import BlogDetail from './pages/Blog/BlogDetail';
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -44,6 +45,7 @@ function App() {
           {/* Public */}
           <Route path="/" element={<Landing />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 

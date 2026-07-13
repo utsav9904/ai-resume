@@ -1,73 +1,16 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Clock, User } from 'lucide-react';
-
-const posts = [
-  {
-    slug: 'how-to-beat-ats',
-    title: 'How to Beat ATS and Get Your Resume to Human Eyes in 2025',
-    excerpt: 'Applicant Tracking Systems reject up to 75% of resumes before a human ever sees them. Learn the exact formatting tricks, keyword strategies, and layout choices that guarantee your resume gets through.',
-    category: 'Resume Tips',
-    readTime: '6 min read',
-    date: 'June 18, 2026',
-    author: 'ResumeAI Team',
-  },
-  {
-    slug: 'ai-resume-writing',
-    title: 'How AI is Changing the Way We Write Resumes',
-    excerpt: 'From AI-generated summaries to real-time job tailoring, artificial intelligence is transforming the job hunt. Here\'s how to use AI tools to write a resume that stands out — without sounding robotic.',
-    category: 'AI & Careers',
-    readTime: '5 min read',
-    date: 'June 15, 2026',
-    author: 'ResumeAI Team',
-  },
-  {
-    slug: 'cover-letter-tips',
-    title: '7 Cover Letter Mistakes That Are Killing Your Job Applications',
-    excerpt: 'A great resume gets you noticed. A great cover letter gets you interviewed. Discover the 7 most common cover letter mistakes and how to fix them — including how AI can do the heavy lifting for you.',
-    category: 'Cover Letters',
-    readTime: '7 min read',
-    date: 'June 12, 2026',
-    author: 'ResumeAI Team',
-  },
-  {
-    slug: 'resume-skills-section',
-    title: 'The Skills Section Recruiters Actually Want to See (With Examples)',
-    excerpt: 'Your skills section is prime real estate. Recruiters spend just 6 seconds on a resume — make sure your skills section grabs attention and matches the job description perfectly.',
-    category: 'Resume Tips',
-    readTime: '4 min read',
-    date: 'June 10, 2026',
-    author: 'ResumeAI Team',
-  },
-  {
-    slug: 'job-tailoring-guide',
-    title: 'Why You Should Never Send the Same Resume Twice',
-    excerpt: 'Customizing your resume for every job application increases your interview rate by up to 40%. Here\'s the step-by-step process to tailor your resume quickly — and how AI makes it effortless.',
-    category: 'Job Search',
-    readTime: '5 min read',
-    date: 'June 8, 2026',
-    author: 'ResumeAI Team',
-  },
-  {
-    slug: 'resume-formats-2025',
-    title: 'Chronological vs Functional vs Hybrid: Which Resume Format Is Right for You?',
-    excerpt: 'The format of your resume matters as much as the content. Find out which of the three main formats fits your career stage and experience level — with real examples from each.',
-    category: 'Resume Tips',
-    readTime: '6 min read',
-    date: 'June 5, 2026',
-    author: 'ResumeAI Team',
-  },
-];
-
-const categories = ['All', 'Resume Tips', 'AI & Careers', 'Cover Letters', 'Job Search'];
-
-const categoryColors: Record<string, string> = {
-  'Resume Tips': 'bg-teal-100 text-teal-700',
-  'AI & Careers': 'bg-purple-100 text-purple-700',
-  'Cover Letters': 'bg-blue-100 text-blue-700',
-  'Job Search': 'bg-orange-100 text-orange-700',
-};
+import { categories, categoryColors, posts } from './blogData';
 
 const Blog = () => {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredPosts = useMemo(() => {
+    if (selectedCategory === 'All') return posts;
+    return posts.filter((post) => post.category === selectedCategory);
+  }, [selectedCategory]);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Nav */}
@@ -99,19 +42,25 @@ const Blog = () => {
         </div>
       </section>
 
-      {/* Category Filter (decorative — no filter logic for SEO static blog) */}
-      <div className="max-w-5xl mx-auto px-6 mb-8 flex gap-2 flex-wrap justify-center">
-        {categories.map(cat => (
-          <span key={cat} className={`px-4 py-1.5 rounded-full text-sm font-medium cursor-pointer border ${cat === 'All' ? 'bg-teal-600 text-white border-teal-600' : 'border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700'} transition`}>
+      {/* Category Filter */}
+      <div className="max-w-5xl mx-auto px-6 mb-8 flex gap-2 flex-wrap justify-center" role="tablist" aria-label="Blog categories">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition border ${selectedCategory === cat ? 'bg-teal-600 text-white border-teal-600' : 'border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700'}`}
+            onClick={() => setSelectedCategory(cat)}
+            aria-current={selectedCategory === cat ? 'page' : undefined}
+          >
             {cat}
-          </span>
+          </button>
         ))}
       </div>
 
       {/* Posts Grid */}
       <main className="max-w-5xl mx-auto px-6 pb-24 flex-grow">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <article key={post.slug} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-teal-200 transition-all duration-200 flex flex-col">
               {/* Color bar */}
               <div className="h-1.5 bg-gradient-to-r from-teal-500 to-teal-600" />
@@ -131,11 +80,12 @@ const Blog = () => {
                   <span className="text-xs text-gray-400">{post.date}</span>
                 </div>
               </div>
-              {/* Read More link (full URL for SEO) */}
+              {/* Read More link */}
               <div className="px-6 pb-5">
                 <Link
                   to={`/blog/${post.slug}`}
                   className="w-full flex items-center justify-center gap-1.5 text-teal-600 hover:text-teal-700 text-sm font-semibold hover:underline transition"
+                  aria-label={`Read full article: ${post.title}`}
                 >
                   Read Article <ArrowRight size={14} />
                 </Link>
@@ -143,6 +93,13 @@ const Blog = () => {
             </article>
           ))}
         </div>
+
+        {/* Empty state when no posts match */}
+        {filteredPosts.length === 0 && (
+          <div className="mt-12 rounded-3xl border border-gray-200 bg-gray-50 p-10 text-center text-gray-600">
+            No posts match this category yet. Try another filter or check back soon.
+          </div>
+        )}
 
         {/* CTA Banner */}
         <div className="mt-16 bg-gradient-to-r from-teal-600 to-teal-700 rounded-2xl p-10 text-center text-white">
