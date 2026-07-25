@@ -1,36 +1,66 @@
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 
-export const generatePDF = async (elementId: string, filename: string = 'resume.pdf') => {
+interface CustomSize {
+  widthMm: number;
+  heightMm: number;
+}
+
+const getDimensions = (pageSize: string, customSize?: CustomSize): { widthMm: number; heightMm: number; format: string | number[] } => {
+  switch (pageSize) {
+    case 'letter':
+      return { widthMm: 215.9, heightMm: 279.4, format: 'letter' };
+    case 'legal':
+      return { widthMm: 215.9, heightMm: 355.6, format: 'legal' };
+    case 'executive':
+      return { widthMm: 184.1, heightMm: 266.7, format: 'executive' };
+    case 'custom': {
+      const w = customSize?.widthMm || 210;
+      const h = customSize?.heightMm || 297;
+      return { widthMm: w, heightMm: h, format: [w, h] };
+    }
+    case 'a4':
+    default:
+      return { widthMm: 210, heightMm: 297, format: 'a4' };
+  }
+};
+
+export const generatePDF = async (
+  elementId: string,
+  filename: string = 'resume.pdf',
+  pageSize: string = 'a4',
+  customSize?: CustomSize
+) => {
   const element = document.getElementById(elementId);
   if (!element) {
     console.error('Element not found:', elementId);
     return;
   }
 
+  const dim = getDimensions(pageSize, customSize);
+
   try {
-    // Clone element temporarily for high-res clean capture
     const canvas = await html2canvas(element, {
-      scale: 2.5, // 2.5x high DPI resolution
+      scale: 2.5,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: 794, // Standard A4 width in px at 96 DPI
+      windowWidth: Math.round(dim.widthMm * 3.7795), // mm to px at 96 DPI
     });
 
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4',
+      format: dim.format as any,
       compress: true,
     });
 
-    const a4WidthMm = 210;
-    const a4HeightMm = 297;
+    const pageWidthMm = dim.widthMm;
+    const pageHeightMm = dim.heightMm;
 
-    // Convert A4 height to canvas pixels
-    const pxPerMm = canvas.width / a4WidthMm;
-    const pageHeightPx = Math.floor(a4HeightMm * pxPerMm);
+    // Convert page height to canvas pixels
+    const pxPerMm = canvas.width / pageWidthMm;
+    const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
     const totalHeight = canvas.height;
 
@@ -44,7 +74,7 @@ export const generatePDF = async (elementId: string, filename: string = 'resume.
       return Math.floor((rect.top - parentRect.top) * scaleFactor);
     }).filter(y => y > 0 && y < totalHeight).sort((a, b) => a - b);
 
-    // Compute slice points based on manual breaks and page size
+    // Compute slice points
     const slicePoints: number[] = [0];
     let currentY = 0;
 
@@ -88,11 +118,11 @@ export const generatePDF = async (elementId: string, filename: string = 'resume.
 
       const imgData = sliceCanvas.toDataURL('image/png', 1.0);
       if (pageCount > 0) {
-        pdf.addPage();
+        pdf.addPage(dim.format as any);
       }
 
-      const pdfHeight = (sliceHeight * a4WidthMm) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, a4WidthMm, pdfHeight);
+      const pdfHeight = (sliceHeight * pageWidthMm) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pdfHeight);
       pageCount++;
     }
 

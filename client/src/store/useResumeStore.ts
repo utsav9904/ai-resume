@@ -34,6 +34,11 @@ export interface Certification {
 }
 
 export interface CustomizationSettings {
+  pageSize: 'a4' | 'letter' | 'legal' | 'executive' | 'custom';
+  customPageSize?: {
+    widthMm: number;
+    heightMm: number;
+  };
   fontFamily: 'inter' | 'roboto' | 'outfit' | 'merriweather' | 'playfair' | 'fira-code';
   fontSize: 'xs' | 'sm' | 'md' | 'lg';
   lineHeight: 'compact' | 'normal' | 'spacious';
@@ -103,6 +108,8 @@ export interface ResumeState {
 }
 
 const defaultCustomization: CustomizationSettings = {
+  pageSize: 'a4',
+  customPageSize: { widthMm: 210, heightMm: 297 },
   fontFamily: 'inter',
   fontSize: 'sm',
   lineHeight: 'normal',

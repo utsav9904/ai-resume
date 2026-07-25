@@ -625,6 +625,62 @@ const Builder = () => {
               {activeCustomizeTab === 'layout' && (
                 <div className="space-y-6">
                   <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Page Paper Size</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                      {[
+                        { id: 'a4', label: 'A4 Standard', desc: '210 × 297 mm' },
+                        { id: 'letter', label: 'US Letter', desc: '8.5 × 11 in' },
+                        { id: 'legal', label: 'US Legal', desc: '8.5 × 14 in' },
+                        { id: 'executive', label: 'Executive', desc: '7.25 × 10.5 in' },
+                        { id: 'custom', label: 'Custom Size', desc: 'Set mm dimensions' },
+                      ].map(ps => (
+                        <button
+                          key={ps.id}
+                          onClick={() => updateCustomization({ pageSize: ps.id as any })}
+                          className={`p-2.5 border rounded-xl text-left transition ${
+                            (customization.pageSize || 'a4') === ps.id
+                              ? 'border-teal-500 bg-teal-50/50 text-teal-800 font-bold'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="text-xs font-semibold">{ps.label}</div>
+                          <div className="text-[10px] opacity-75">{ps.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {customization.pageSize === 'custom' && (
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                        <span className="text-xs font-semibold text-gray-700 block">Custom Dimensions (in millimeters):</span>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Width (mm)</label>
+                            <input
+                              type="number"
+                              min="100"
+                              max="500"
+                              value={customization.customPageSize?.widthMm || 210}
+                              onChange={e => updateCustomization({ customPageSize: { widthMm: Number(e.target.value), heightMm: customization.customPageSize?.heightMm || 297 } })}
+                              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-teal-500 bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Height (mm)</label>
+                            <input
+                              type="number"
+                              min="100"
+                              max="700"
+                              value={customization.customPageSize?.heightMm || 297}
+                              onChange={e => updateCustomization({ customPageSize: { widthMm: customization.customPageSize?.widthMm || 210, heightMm: Number(e.target.value) } })}
+                              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-teal-500 bg-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Column Structure</label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
@@ -1167,7 +1223,7 @@ const Builder = () => {
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2 text-xs text-gray-700">
                   <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Document Formats</div>
                   <button
-                    onClick={() => { setExportMenuOpen(false); generatePDF('resume-preview', `${personalInfo.fullName || 'resume'}.pdf`); }}
+                    onClick={() => { setExportMenuOpen(false); generatePDF('resume-preview', `${personalInfo.fullName || 'resume'}.pdf`, customization.pageSize || 'a4', customization.customPageSize); }}
                     className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
                   >
                     <span>📄 Download PDF (Standard)</span>
