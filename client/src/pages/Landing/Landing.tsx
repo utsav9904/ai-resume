@@ -18,6 +18,15 @@ const Landing = () => {
     { num: '04', title: 'Download & Apply', desc: 'Export as PDF and start applying to your dream jobs with confidence.' },
   ];
 
+  const futureFeatures = [
+    { title: 'AI Resume Reviewer', desc: 'Review your resume with AI feedback on strengths, weaknesses, and measurable achievements.' },
+    { title: 'ATS Compatibility Checker', desc: 'Analyze keyword match, formatting, and file compatibility for ATS systems.' },
+    { title: 'Job Description Analyzer', desc: 'Compare your resume to a job description and highlight missing skills and gaps.' },
+    { title: 'AI Cover Letter Generator', desc: 'Generate tailored cover letters for companies like Google, Amazon, Microsoft, and startups.' },
+    { title: 'Resume Analytics Dashboard', desc: 'Track resume completeness, export history, AI usage, and ATS score trends.' },
+    { title: 'AI Career Copilot', desc: 'Bring resume review, cover letters, interview prep, and skill guidance together in one AI assistant.' },
+  ];
+
   const testimonials = [
     { name: 'Priya S.', role: 'Software Engineer', text: 'Got 3 interviews in the first week after using ResumeAI to tailor my resume. The AI suggestions were spot on!', rating: 5 },
     { name: 'Arjun M.', role: 'Product Manager', text: 'The cover letter generator saved me hours. The AI perfectly matched my experience to the job requirements.', rating: 5 },
@@ -36,6 +45,7 @@ const Landing = () => {
         </div>
         <div className="flex items-center gap-4">
           <Link to="/blog" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Blog</Link>
+          <Link to="/future-features" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Roadmap</Link>
           <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Log in</Link>
           <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition shadow-sm">
             Get Started Free
@@ -153,6 +163,30 @@ const Landing = () => {
                   <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Future Roadmap */}
+      <section className="py-20 px-6 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Upcoming AI Career Features</h2>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">These planned enhancements will make ResumeAI a full AI career copilot, not just a resume builder.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {futureFeatures.map((feature) => (
+              <div key={feature.title} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-teal-600 bg-teal-50 rounded-2xl p-3">
+                    <CheckCircle size={20} />
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.3em] text-gray-400">Coming soon</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>

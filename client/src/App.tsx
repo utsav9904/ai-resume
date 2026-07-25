@@ -6,6 +6,7 @@ import Builder from './pages/Builder/Builder';
 import Landing from './pages/Landing/Landing';
 import Blog from './pages/Blog/Blog';
 import BlogDetail from './pages/Blog/BlogDetail';
+import FutureFeatures from './pages/FutureFeatures/FutureFeatures';
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -48,6 +49,7 @@ function App() {
           <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/future-features" element={<FutureFeatures />} />
 
           {/* Protected */}
           <Route path="/dashboard" element={

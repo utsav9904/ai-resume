@@ -112,6 +112,17 @@ ai-resume/
 
 ---
 
+## 🚀 Future AI Feature Roadmap
+These planned features are not yet available in the current website, but they represent the direction ResumeAI is heading.
+
+- **AI Resume Reviewer**: Review resumes with strengths, weaknesses, and measurable improvement suggestions.
+- **ATS Compatibility Checker**: Analyze keyword match, formatting issues, and file compatibility for ATS.
+- **Job Description Analyzer**: Compare a resume to a job posting and highlight missing skills.
+- **AI Cover Letter Generator**: Generate role-specific cover letters for companies like Google, Amazon, and Microsoft.
+- **AI Project Description Generator**: Build polished project bullets automatically from short inputs.
+- **Resume Analytics Dashboard**: Track completeness, ATS scores, export history, and AI usage.
+- **AI Career Copilot**: One assistant for resume review, cover letters, interview prep, skill suggestions, and job matching.
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
