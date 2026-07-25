@@ -25,14 +25,15 @@ app.get('/api/health', (req, res) => {
 });
 
 // Connect to DB and start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
 mongoose
   .connect(process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/resume-builder')
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
   })
   .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+    console.warn('Warning: Could not connect to MongoDB:', error.message || error);
   });

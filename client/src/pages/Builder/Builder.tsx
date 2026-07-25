@@ -11,7 +11,8 @@ import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
-import { generatePDF } from '../../utils/pdfExport';
+import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
+import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -73,6 +74,7 @@ const Builder = () => {
   const [tailoredSummary, setTailoredSummary] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const autoSaveTimer = useRef<any>(null);
 
   const store = useResumeStore();
@@ -1074,6 +1076,27 @@ const Builder = () => {
                       </label>
                     </div>
                   </div>
+
+                  <div className="space-y-3 pt-4 border-t border-gray-100">
+                    <label className="block text-sm font-semibold text-gray-700">Page Breaks (Multi-Page Control)</label>
+                    <p className="text-xs text-gray-500">Toggle page breaks before specific sections to push them onto a new page in live preview & download.</p>
+                    <div className="space-y-2">
+                      {['summary', 'experience', 'education', 'skills', 'projects', 'certifications'].map(secId => {
+                        const hasBreak = (customization.pageBreaks || []).includes(secId);
+                        return (
+                          <label key={secId} className={`flex items-center justify-between p-2.5 rounded-lg border transition cursor-pointer ${hasBreak ? 'border-teal-500 bg-teal-50/50 text-teal-800' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}>
+                            <span className="text-xs font-semibold">{sectionLabels[secId] || secId}</span>
+                            <input
+                              type="checkbox"
+                              checked={hasBreak}
+                              onChange={() => togglePageBreak(secId)}
+                              className="h-4 w-4 rounded text-teal-600 border-gray-300 focus:ring-teal-500"
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
             </>
@@ -1129,13 +1152,55 @@ const Builder = () => {
             {saveStatus === 'saved' && <><div className="w-2 h-2 rounded-full bg-green-400" /><span className="text-green-600">All saved</span></>}
             {saveStatus === 'unsaved' && <><div className="w-2 h-2 rounded-full bg-red-400" /><span className="text-red-500">Unsaved changes</span></>}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 relative">
             <button onClick={() => doSave(false)} disabled={isSaving || saveStatus === 'saved'} className="bg-teal-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium hover:bg-teal-700 transition disabled:opacity-50">
               <Save size={14} /> {isSaving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => generatePDF('resume-preview', `${personalInfo.fullName || 'resume'}.pdf`)} className="bg-gray-800 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium hover:bg-gray-900 transition">
-              <Download size={14} /> PDF
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setExportMenuOpen(!exportMenuOpen)}
+                className="bg-gray-900 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold hover:bg-gray-800 transition shadow-sm"
+              >
+                <Download size={14} /> Export & Download <ChevronDown size={14} />
+              </button>
+              {exportMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2 text-xs text-gray-700">
+                  <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Document Formats</div>
+                  <button
+                    onClick={() => { setExportMenuOpen(false); generatePDF('resume-preview', `${personalInfo.fullName || 'resume'}.pdf`); }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
+                  >
+                    <span>📄 Download PDF (Standard)</span>
+                  </button>
+                  <button
+                    onClick={() => { setExportMenuOpen(false); printVectorPDF(); }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
+                  >
+                    <span>🖨️ Print / Vector PDF</span>
+                  </button>
+                  <button
+                    onClick={() => { setExportMenuOpen(false); exportToDocx(store, `${personalInfo.fullName || 'resume'}.docx`); }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition font-semibold text-teal-800"
+                  >
+                    <span>📝 Download DOCX (MS Word)</span>
+                  </button>
+                  <button
+                    onClick={() => { setExportMenuOpen(false); exportToTxt(store, `${personalInfo.fullName || 'resume'}.txt`); }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
+                  >
+                    <span>📑 Download Plain Text (.txt)</span>
+                  </button>
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Data Backup</div>
+                  <button
+                    onClick={() => { setExportMenuOpen(false); exportToJson(store, `${personalInfo.fullName || 'resume'}-backup.json`); }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
+                  >
+                    <span>💾 Backup Data (.json)</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1155,8 +1220,8 @@ const Builder = () => {
           </div>
         </div>
 
-        {/* A4 Paper */}
-        <div className="w-full aspect-[1/1.414] bg-white shadow-xl mx-auto text-sm overflow-hidden rounded-sm">
+        {/* Multi-Page A4 Paper Sheets Container */}
+        <div className="w-full mx-auto text-sm pb-12">
           {template === 'modern' && <ModernTemplate data={store} />}
           {template === 'minimalist' && <MinimalistTemplate data={store} />}
           {template === 'professional' && <ProfessionalTemplate data={store} />}

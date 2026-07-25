@@ -4,17 +4,37 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
+interface ResumeItem {
+  _id: string;
+  title?: string;
+  template?: string;
+  templateColor?: string;
+  updatedAt?: string;
+  personalInfo?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  };
+  summary?: string;
+  experience?: unknown[];
+  education?: unknown[];
+  skills?: {
+    technical?: string[];
+  };
+  [key: string]: unknown;
+}
+
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [resumes, setResumes] = useState<any[]>([]);
+  const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [duplicating, setDuplicating] = useState<string | null>(null);
 
   useEffect(() => {
     api.get('/api/resumes')
       .then(res => setResumes(res.data))
-      .catch(() => {})
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -23,19 +43,23 @@ const Dashboard = () => {
     try {
       await api.delete(`/api/resumes/${id}`);
       setResumes(prev => prev.filter(r => r._id !== id));
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const duplicateResume = async (resume: any) => {
+  const duplicateResume = async (resume: ResumeItem) => {
     setDuplicating(resume._id);
     try {
-      const { _id, userId, createdAt, updatedAt, __v, ...resumeData } = resume;
+      const { _id: _1, userId: _2, createdAt: _3, updatedAt: _4, __v: _5, ...resumeData } = resume;
       const res = await api.post('/api/resumes', {
         ...resumeData,
         title: `${resumeData.title || 'Resume'} (Copy)`,
       });
       setResumes(prev => [res.data, ...prev]);
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
     finally { setDuplicating(null); }
   };
 
@@ -43,16 +67,18 @@ const Dashboard = () => {
     try {
       const res = await api.post('/api/resumes', { title: 'Untitled Resume' });
       navigate(`/builder/${res.data._id}`);
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const getTemplateColor = (resume: any) => resume.templateColor || '#0d9488';
-  const getCompletion = (resume: any) => {
+  const getTemplateColor = (resume: ResumeItem) => resume.templateColor || '#0d9488';
+  const getCompletion = (resume: ResumeItem) => {
     const checks = [
       resume.personalInfo?.fullName, resume.personalInfo?.email,
       resume.personalInfo?.phone, resume.summary,
-      resume.experience?.length > 0, resume.education?.length > 0,
-      resume.skills?.technical?.length > 0,
+      (resume.experience?.length ?? 0) > 0, (resume.education?.length ?? 0) > 0,
+      (resume.skills?.technical?.length ?? 0) > 0,
     ];
     const filled = checks.filter(Boolean).length;
     return Math.round((filled / checks.length) * 100);
@@ -146,7 +172,7 @@ const Dashboard = () => {
                 {/* Card Info */}
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-800 truncate mb-0.5 text-sm">{resume.title || 'Untitled Resume'}</h3>
-                  <p className="text-xs text-gray-400 mb-3">Updated {new Date(resume.updatedAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400 mb-3">Updated {resume.updatedAt ? new Date(resume.updatedAt).toLocaleDateString() : 'recently'}</p>
 
                   {/* Completion bar */}
                   <div className="mb-3">

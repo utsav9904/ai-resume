@@ -193,20 +193,20 @@ export const useResumeStore = create<ResumeState>((set) => ({
     projects: [...state.projects, { id: crypto.randomUUID(), name: '', description: '', technologies: '', githubLink: '' }]
   })),
   updateProject: (id, data) => set((state) => ({
-    projects: state.projects.map((p: any) => p.id === id ? { ...p, ...data } : p)
+    projects: state.projects.map((p) => p.id === id ? { ...p, ...data } : p)
   })),
   removeProject: (id) => set((state) => ({
-    projects: state.projects.filter((p: any) => p.id !== id)
+    projects: state.projects.filter((p) => p.id !== id)
   })),
 
   addCertification: () => set((state) => ({
     certifications: [...state.certifications, { id: crypto.randomUUID(), name: '', organization: '', date: '' }]
   })),
   updateCertification: (id, data) => set((state) => ({
-    certifications: state.certifications.map((c: any) => c.id === id ? { ...c, ...data } : c)
+    certifications: state.certifications.map((c) => c.id === id ? { ...c, ...data } : c)
   })),
   removeCertification: (id) => set((state) => ({
-    certifications: state.certifications.filter((c: any) => c.id !== id)
+    certifications: state.certifications.filter((c) => c.id !== id)
   })),
 
   setResume: (data) => set((state) => {

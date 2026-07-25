@@ -78,6 +78,24 @@ const SectionHeader: React.FC<{ title: string; color: string; styleType: string 
   );
 };
 
+const groupSectionsIntoPages = (sections: string[], breaks: string[]) => {
+  const result: string[][] = [];
+  let currentGroup: string[] = [];
+
+  for (const sec of sections) {
+    if (breaks.includes(sec) && currentGroup.length > 0) {
+      result.push(currentGroup);
+      currentGroup = [sec];
+    } else {
+      currentGroup.push(sec);
+    }
+  }
+  if (currentGroup.length > 0) {
+    result.push(currentGroup);
+  }
+  return result;
+};
+
 const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   const customization = data.customization || {
     fontFamily: 'inter',
@@ -97,6 +115,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
     bgColor: '#ffffff',
     showIcons: true,
     showDates: true,
+    pageBreaks: [],
   };
 
   const accentColor = customization.accentColor || data.templateColor || '#0d9488';
@@ -122,6 +141,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
 
   const showDates = customization.showDates !== false;
   const showIcons = customization.showIcons !== false;
+  const pageBreaks = customization.pageBreaks || [];
 
   // Render Subsections
   const renderSummary = () => {
@@ -254,83 +274,85 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderSection = (sectionId: string) => {
-    const pageBreaks = customization.pageBreaks || [];
-    const isPageBreak = pageBreaks.includes(sectionId);
-    
-    let content = null;
     switch (sectionId) {
-      case 'summary': content = renderSummary(); break;
-      case 'experience': content = renderExperience(); break;
-      case 'education': content = renderEducation(); break;
-      case 'skills': content = renderSkills(); break;
-      case 'projects': content = renderProjects(); break;
-      case 'certifications': content = renderCertifications(); break;
-      default: content = null;
+      case 'summary': return renderSummary();
+      case 'experience': return renderExperience();
+      case 'education': return renderEducation();
+      case 'skills': return renderSkills();
+      case 'projects': return renderProjects();
+      case 'certifications': return renderCertifications();
+      default: return null;
     }
-    
-    if (!content) return null;
-    
-    return (
-      <div key={sectionId} className={isPageBreak ? "page-break-before" : ""}>
-        {isPageBreak && (
-          <div className="w-full flex items-center gap-2 py-4 my-2 border-t border-dashed border-gray-300 text-gray-400 text-xs select-none print:hidden">
-            <span className="font-semibold uppercase tracking-wider text-[0.8em]">Page Break</span>
-            <div className="flex-grow border-t border-dashed border-gray-300"></div>
-          </div>
-        )}
-        {content}
-      </div>
-    );
   };
+
+  const renderHeader = () => (
+    <header className="border-b-2 pb-4" style={{ borderColor: accentColor, marginBottom: sectionMarginMap[customization.sectionSpacing] || '24px' }}>
+      <h1 className="text-[2.2em] font-bold tracking-tight mb-1" style={{ lineHeight: 1.1 }}>{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.88em] opacity-85 mt-2">
+        {data.personalInfo.email && <span>{showIcons ? '✉ ' : ''}{data.personalInfo.email}</span>}
+        {data.personalInfo.phone && <span>{showIcons ? '☎ ' : '• '}{data.personalInfo.phone}</span>}
+        {data.personalInfo.address && <span>{showIcons ? '📍 ' : '• '}{data.personalInfo.address}</span>}
+        {data.personalInfo.linkedin && <span>{showIcons ? '💼 ' : '• '}{data.personalInfo.linkedin}</span>}
+        {data.personalInfo.github && <span>{showIcons ? '⌨ ' : '• '}{data.personalInfo.github}</span>}
+        {data.personalInfo.portfolio && <span>{showIcons ? '🌐 ' : '• '}{data.personalInfo.portfolio}</span>}
+      </div>
+    </header>
+  );
 
   const orderList = customization.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
   const sidebarList = customization.sidebarSections || ['skills', 'certifications'];
   const mainList = customization.mainSections || ['summary', 'experience', 'education', 'projects'];
   const colRatio = customization.columnRatio || '1/3-2/3';
 
-  return (
-    <div className="w-full h-full" id="resume-preview" style={fontStyle}>
-      {/* Header */}
-      <header className="border-b-2 pb-4" style={{ borderColor: accentColor, marginBottom: sectionMarginMap[customization.sectionSpacing] || '24px' }}>
-        <h1 className="text-[2.2em] font-bold tracking-tight mb-1" style={{ lineHeight: 1.1 }}>{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.88em] opacity-85 mt-2">
-          {data.personalInfo.email && <span>{showIcons ? '✉ ' : ''}{data.personalInfo.email}</span>}
-          {data.personalInfo.phone && <span>{showIcons ? '☎ ' : '• '}{data.personalInfo.phone}</span>}
-          {data.personalInfo.address && <span>{showIcons ? '📍 ' : '• '}{data.personalInfo.address}</span>}
-          {data.personalInfo.linkedin && <span>{showIcons ? '💼 ' : '• '}{data.personalInfo.linkedin}</span>}
-          {data.personalInfo.github && <span>{showIcons ? '⌨ ' : '• '}{data.personalInfo.github}</span>}
-          {data.personalInfo.portfolio && <span>{showIcons ? '🌐 ' : '• '}{data.personalInfo.portfolio}</span>}
-        </div>
-      </header>
+  // Group sections into page chunks based on pageBreaks
+  const pageChunks = groupSectionsIntoPages(orderList, pageBreaks);
 
-      {/* Body Content */}
-      {customization.layout === '2-column' ? (
-        <div className={`grid gap-6 ${colRatio === '1/2-1/2' ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          {colRatio === '2/3-1/3' ? (
-            <>
-              <div className="col-span-2 space-y-1">
-                {mainList.map(id => renderSection(id))}
-              </div>
-              <div className="col-span-1 space-y-1">
-                {sidebarList.map(id => renderSection(id))}
-              </div>
-            </>
+  return (
+    <div id="resume-preview" className="w-full space-y-8">
+      {pageChunks.map((chunk, pageIndex) => (
+        <div
+          key={pageIndex}
+          className={`w-full min-h-[1050px] bg-white shadow-2xl rounded-sm p-8 border border-gray-200 relative ${pageIndex > 0 ? 'page-break-before' : ''}`}
+          style={fontStyle}
+        >
+          {/* Page Badge indicator */}
+          <div className="absolute top-3 right-4 px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-700 rounded text-[10px] font-bold uppercase tracking-wider select-none print:hidden shadow-xs">
+            📄 Page {pageIndex + 1} of {pageChunks.length}
+          </div>
+
+          {/* Header on Page 1 */}
+          {pageIndex === 0 && renderHeader()}
+
+          {/* Page Content */}
+          {customization.layout === '2-column' && pageIndex === 0 ? (
+            <div className={`grid gap-6 ${colRatio === '1/2-1/2' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              {colRatio === '2/3-1/3' ? (
+                <>
+                  <div className="col-span-2 space-y-1">
+                    {mainList.map(id => renderSection(id))}
+                  </div>
+                  <div className="col-span-1 space-y-1">
+                    {sidebarList.map(id => renderSection(id))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="col-span-1 space-y-1">
+                    {sidebarList.map(id => renderSection(id))}
+                  </div>
+                  <div className={`${colRatio === '1/2-1/2' ? 'col-span-1' : 'col-span-2'} space-y-1`}>
+                    {mainList.map(id => renderSection(id))}
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
-            <>
-              <div className="col-span-1 space-y-1">
-                {sidebarList.map(id => renderSection(id))}
-              </div>
-              <div className={`${colRatio === '1/2-1/2' ? 'col-span-1' : 'col-span-2'} space-y-1`}>
-                {mainList.map(id => renderSection(id))}
-              </div>
-            </>
+            <div className="space-y-1">
+              {chunk.map(id => renderSection(id))}
+            </div>
           )}
         </div>
-      ) : (
-        <div className="space-y-1">
-          {orderList.map(id => renderSection(id))}
-        </div>
-      )}
+      ))}
     </div>
   );
 };

@@ -4,86 +4,104 @@ import jsPDF from 'jspdf';
 export const generatePDF = async (elementId: string, filename: string = 'resume.pdf') => {
   const element = document.getElementById(elementId);
   if (!element) {
-    console.error('Element not found');
+    console.error('Element not found:', elementId);
     return;
   }
 
   try {
+    // Clone element temporarily for high-res clean capture
     const canvas = await html2canvas(element, {
-      scale: 2, // Higher resolution
+      scale: 2.5, // 2.5x high DPI resolution
       useCORS: true,
       logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: 794, // Standard A4 width in px at 96 DPI
     });
 
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4'
+      format: 'a4',
+      compress: true,
     });
 
-    const a4Width = 210;
-    
-    // Scale factor to map element pixels to canvas pixels
-    const scale = canvas.width / element.clientWidth;
-    const a4HeightPx = element.clientWidth * 1.414 * scale;
+    const a4WidthMm = 210;
+    const a4HeightMm = 297;
 
-    // Find all page breaks
+    // Convert A4 height to canvas pixels
+    const pxPerMm = canvas.width / a4WidthMm;
+    const pageHeightPx = Math.floor(a4HeightMm * pxPerMm);
+
+    const totalHeight = canvas.height;
+
+    // Find all manual page breaks
     const pageBreakElements = Array.from(element.querySelectorAll('.page-break-before'));
-    const manualBreaks = pageBreakElements.map(el => {
-      const rect = el.getBoundingClientRect();
-      const parentRect = element.getBoundingClientRect();
-      return (rect.top - parentRect.top) * scale;
-    }).filter(y => y > 0 && y < canvas.height).sort((a, b) => a - b);
+    const parentRect = element.getBoundingClientRect();
+    const scaleFactor = canvas.width / element.clientWidth;
 
-    // We will slice the canvas at these Y positions.
+    const manualBreakPx = pageBreakElements.map(el => {
+      const rect = el.getBoundingClientRect();
+      return Math.floor((rect.top - parentRect.top) * scaleFactor);
+    }).filter(y => y > 0 && y < totalHeight).sort((a, b) => a - b);
+
+    // Compute slice points based on manual breaks and page size
     const slicePoints: number[] = [0];
-    
     let currentY = 0;
-    for (const brk of manualBreaks) {
-      while (brk - currentY > a4HeightPx) {
-        currentY += a4HeightPx;
+
+    for (const brk of manualBreakPx) {
+      while (brk - currentY > pageHeightPx) {
+        currentY += pageHeightPx;
         slicePoints.push(currentY);
       }
-      currentY = brk;
+      if (brk > currentY) {
+        currentY = brk;
+        slicePoints.push(currentY);
+      }
+    }
+    while (totalHeight - currentY > pageHeightPx) {
+      currentY += pageHeightPx;
       slicePoints.push(currentY);
     }
-    while (canvas.height - currentY > a4HeightPx) {
-      currentY += a4HeightPx;
-      slicePoints.push(currentY);
+    if (slicePoints[slicePoints.length - 1] !== totalHeight) {
+      slicePoints.push(totalHeight);
     }
-    slicePoints.push(canvas.height);
 
-    // Slice and add pages to PDF
+    // Slice canvas and add to PDF pages
     let pageCount = 0;
     for (let i = 0; i < slicePoints.length - 1; i++) {
       const yStart = slicePoints[i];
       const yEnd = slicePoints[i + 1];
       const sliceHeight = yEnd - yStart;
 
-      if (sliceHeight <= 10) continue; // Skip tiny slices
+      if (sliceHeight <= 5) continue;
 
-      // Create a slice canvas
       const sliceCanvas = document.createElement('canvas');
       sliceCanvas.width = canvas.width;
       sliceCanvas.height = sliceHeight;
+
       const ctx = sliceCanvas.getContext('2d');
       if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, sliceCanvas.width, sliceHeight);
         ctx.drawImage(canvas, 0, yStart, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
       }
 
-      const sliceData = sliceCanvas.toDataURL('image/png');
-
+      const imgData = sliceCanvas.toDataURL('image/png', 1.0);
       if (pageCount > 0) {
         pdf.addPage();
       }
 
-      const pdfHeight = (sliceHeight * a4Width) / canvas.width;
-      pdf.addImage(sliceData, 'PNG', 0, 0, a4Width, pdfHeight);
+      const pdfHeight = (sliceHeight * a4WidthMm) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, a4WidthMm, pdfHeight);
       pageCount++;
     }
 
-    pdf.save(filename);
+    pdf.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`);
   } catch (error) {
     console.error('Error generating PDF:', error);
   }
+};
+
+export const printVectorPDF = () => {
+  window.print();
 };

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, Shield, Target, FileText, ArrowRight, Zap, Star, Mail } from 'lucide-react';
+import { Sparkles, Shield, Target, ArrowRight, Zap, Star, Mail } from 'lucide-react';
 
 const features = [
   {
