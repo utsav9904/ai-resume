@@ -2,6 +2,10 @@
 
 > A full-stack, AI-powered resume builder designed to help users create ATS-optimized, professional resumes in minutes.
 
+**Live Website:** https://ai-resume-three-ecru.vercel.app/
+
+**Live Home Page:** https://ai-resume-three-ecru.vercel.app/
+
 ![ResumeAI Preview](client/public/og-image.png)
 
 ## 🌟 Features
@@ -82,9 +86,8 @@ Make sure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mong
    ```
 
 4. **Open your browser:**
-   Navigate to `http://localhost:5173` to see the application running.
+   Navigate to `https://ai-resume-three-ecru.vercel.app/` to see the application running.
 
----
 
 ## 📂 Project Structure
 
