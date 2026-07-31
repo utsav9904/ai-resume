@@ -9,6 +9,7 @@ import BlogDetail from './pages/Blog/BlogDetail';
 import FutureFeatures from './pages/FutureFeatures/FutureFeatures';
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
@@ -75,6 +76,7 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
     </AuthProvider>
   );
 }

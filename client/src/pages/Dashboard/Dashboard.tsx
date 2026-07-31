@@ -3,6 +3,7 @@ import { PlusCircle, FileText, Edit3, Trash2, Copy, LogOut, Sparkles } from 'luc
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 interface ResumeItem {
   _id: string;
@@ -34,7 +35,10 @@ const Dashboard = () => {
   useEffect(() => {
     api.get('/api/resumes')
       .then(res => setResumes(res.data))
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        console.error(err);
+        toast.error('Failed to load resumes');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -43,13 +47,16 @@ const Dashboard = () => {
     try {
       await api.delete(`/api/resumes/${id}`);
       setResumes(prev => prev.filter(r => r._id !== id));
+      toast.success('Resume deleted successfully');
     } catch (err) {
       console.error(err);
+      toast.error('Failed to delete resume');
     }
   };
 
   const duplicateResume = async (resume: ResumeItem) => {
     setDuplicating(resume._id);
+    const toastId = toast.loading('Duplicating resume...');
     try {
       const { _id: _1, userId: _2, createdAt: _3, updatedAt: _4, __v: _5, ...resumeData } = resume;
       const res = await api.post('/api/resumes', {
@@ -57,18 +64,23 @@ const Dashboard = () => {
         title: `${resumeData.title || 'Resume'} (Copy)`,
       });
       setResumes(prev => [res.data, ...prev]);
+      toast.success('Resume duplicated', { id: toastId });
     } catch (err) {
       console.error(err);
+      toast.error('Failed to duplicate resume', { id: toastId });
     }
     finally { setDuplicating(null); }
   };
 
   const createNewResume = async () => {
+    const toastId = toast.loading('Creating new resume...');
     try {
       const res = await api.post('/api/resumes', { title: 'Untitled Resume' });
+      toast.success('Resume created', { id: toastId });
       navigate(`/builder/${res.data._id}`);
     } catch (err) {
       console.error(err);
+      toast.error('Failed to create resume', { id: toastId });
     }
   };
 

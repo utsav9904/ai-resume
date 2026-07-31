@@ -14,6 +14,7 @@ import ProfessionalTemplate from '../../components/templates/ProfessionalTemplat
 import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
 import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { toast } from 'react-hot-toast';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -159,8 +160,10 @@ const Builder = () => {
         navigate(`/builder/${res.data._id}`, { replace: true });
       }
       setSaveStatus('saved');
+      if (!silent) toast.success('Resume saved successfully');
     } catch {
       setSaveStatus('unsaved');
+      if (!silent) toast.error('Failed to save resume');
     } finally {
       if (!silent) setIsSaving(false);
     }
@@ -180,48 +183,74 @@ const Builder = () => {
   ]);
 
   const handleGenerateAISummary = async () => {
-    if (!personalInfo.fullName) return alert('Please fill in your name first!');
+    if (!personalInfo.fullName) {
+      toast.error('Please fill in your name first!');
+      return;
+    }
     setIsGeneratingAI(true);
+    const toastId = toast.loading('Generating AI summary...');
     try {
       const prompt = `Write a professional resume summary for ${personalInfo.fullName}. Based on: ${JSON.stringify(experience)} and ${JSON.stringify(skills)}`;
       const res = await api.post('/api/ai/generate-summary', { prompt });
       updateSummary(res.data.summary);
-    } catch { alert('Failed to generate summary.'); }
+      toast.success('Summary generated successfully', { id: toastId });
+    } catch { 
+      toast.error('Failed to generate summary.', { id: toastId }); 
+    }
     finally { setIsGeneratingAI(false); }
   };
 
   const handleImproveBullet = async (expId: string, currentText: string) => {
     if (!currentText) return;
+    const toastId = toast.loading('Improving text with AI...');
     try {
       const res = await api.post('/api/ai/improve-bullet', { text: currentText });
       updateExperience(expId, { description: res.data.improvedText });
-    } catch { console.error('AI Error'); }
+      toast.success('Text improved successfully', { id: toastId });
+    } catch { 
+      toast.error('Failed to improve text', { id: toastId }); 
+    }
   };
 
   const handleSuggestSkills = async () => {
+    const toastId = toast.loading('Analyzing skills...');
     try {
       const res = await api.post('/api/ai/suggest-skills', { experience, currentSkills: skills });
       if (res.data.technical) updateSkills('technical', [...new Set([...skills.technical.filter(s=>s), ...res.data.technical])]);
       if (res.data.soft) updateSkills('soft', [...new Set([...skills.soft.filter(s=>s), ...res.data.soft])]);
-    } catch { console.error('AI Error'); }
+      toast.success('Skills added successfully', { id: toastId });
+    } catch { 
+      toast.error('Failed to suggest skills', { id: toastId }); 
+    }
   };
 
   const handleGenerateCoverLetter = async () => {
-    if (!jobDescription) return alert('Please paste a job description first!');
+    if (!jobDescription) {
+      toast.error('Please paste a job description first!');
+      return;
+    }
     setIsGeneratingCoverLetter(true);
+    const toastId = toast.loading('Generating Cover Letter...');
     try {
       const res = await api.post('/api/ai/generate-cover-letter', {
         resumeData: { personalInfo, summary, experience, education, skills },
         jobDescription,
       });
       setCoverLetter(res.data.coverLetter);
-    } catch { console.error('AI Error'); }
+      toast.success('Cover Letter generated', { id: toastId });
+    } catch { 
+      toast.error('Failed to generate cover letter', { id: toastId }); 
+    }
     finally { setIsGeneratingCoverLetter(false); }
   };
 
   const handleTailorResume = async () => {
-    if (!jobDescription) return alert('Please paste a job description first!');
+    if (!jobDescription) {
+      toast.error('Please paste a job description first!');
+      return;
+    }
     setIsTailoring(true);
+    const toastId = toast.loading('Tailoring Resume...');
     try {
       const res = await api.post('/api/ai/tailor-resume', {
         resumeData: { personalInfo, summary, experience, education, skills },
@@ -229,7 +258,10 @@ const Builder = () => {
       });
       setTailorSuggestions(res.data.suggestions || []);
       setTailoredSummary(res.data.improvedSummary || '');
-    } catch { console.error('AI Error'); }
+      toast.success('Resume tailored successfully', { id: toastId });
+    } catch { 
+      toast.error('Failed to tailor resume', { id: toastId }); 
+    }
     finally { setIsTailoring(false); }
   };
 
