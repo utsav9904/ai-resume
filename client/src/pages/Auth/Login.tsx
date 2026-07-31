@@ -60,10 +60,13 @@ const Login = () => {
 
   const formatFirebaseError = (err: any) => {
     if (err.code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key'))) {
-      return 'Firebase API key is missing. Please paste your VITE_FIREBASE_API_KEY in client/.env (or Vercel Settings).';
+      return 'Firebase API key is missing. Please check your VITE_FIREBASE_API_KEY in client/.env.';
+    }
+    if (err.code === 'auth/unauthorized-domain') {
+      return 'Domain not authorized! Please add "ai-resume-three-ecru.vercel.app" (and localhost) under Firebase Console > Authentication > Settings > Authorized Domains.';
     }
     if (err.code === 'auth/popup-blocked') {
-      return 'Pop-up window was blocked by your browser. Attempting redirect...';
+      return 'Pop-up was blocked by your browser. Please allow popups or click below to continue.';
     }
     return err.message || 'Social sign-in failed';
   };
@@ -75,10 +78,14 @@ const Login = () => {
       const res = await signInWithGooglePopup();
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
-      console.error(err);
+      console.error('Google Sign In Error:', err);
       if (err.code === 'auth/popup-blocked') {
-        setError('Pop-up was blocked. Redirecting to Google Sign-In...');
-        signInWithGoogleRedirect();
+        setError('Pop-up was blocked by browser. Redirecting to Google...');
+        try {
+          await signInWithGoogleRedirect();
+        } catch (redirectErr: any) {
+          setError(formatFirebaseError(redirectErr));
+        }
       } else {
         setError(formatFirebaseError(err));
       }
@@ -94,10 +101,14 @@ const Login = () => {
       const res = await signInWithFacebookPopup();
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
-      console.error(err);
+      console.error('Facebook Sign In Error:', err);
       if (err.code === 'auth/popup-blocked') {
-        setError('Pop-up was blocked. Redirecting to Facebook Login...');
-        signInWithFacebookRedirect();
+        setError('Pop-up was blocked by browser. Redirecting to Facebook...');
+        try {
+          await signInWithFacebookRedirect();
+        } catch (redirectErr: any) {
+          setError(formatFirebaseError(redirectErr));
+        }
       } else {
         setError(formatFirebaseError(err));
       }
@@ -105,6 +116,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
 
 
   const handleSendOtp = async (e: React.FormEvent) => {
