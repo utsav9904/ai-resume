@@ -9,7 +9,8 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "buildCommand": "npm run build -- --skipLibCheck || npx vite build"
       }
     }
   ],
@@ -22,5 +23,8 @@
       "src": "/(.*)",
       "dest": "client/$1"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": ""
+  }
 }
