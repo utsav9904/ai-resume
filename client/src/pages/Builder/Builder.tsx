@@ -143,53 +143,51 @@ const Builder = () => {
     e.preventDefault();
     if (!shareEmail) return;
 
-    const toastId = toast.loading('Generating PDF and preparing email...');
+    const toastId = toast.loading('Sending email...');
     try {
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_x38j328';
+      const serviceId = 'service_lf4pzre';
+      const templateId = 'template_x38j328';
+      const publicKey = 'u01NJS_ZbqnoN7kVS';
 
-      let downloadUrl = '';
-      try {
-        const blob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
-        if (blob) {
-          const uid = auth.currentUser?.uid || 'guest';
-          const fileRef = ref(storage, `resumes/${uid}/shared_${Date.now()}.pdf`);
-          await uploadBytes(fileRef, blob);
-          downloadUrl = await getDownloadURL(fileRef);
-        }
-      } catch (storageErr) {
-        console.warn('Firebase Storage upload warning, proceeding with email notification:', storageErr);
-        downloadUrl = window.location.href; // Fallback link to current resume page
-      }
+      // Skip PDF upload for now - just send a direct email notification
+      const templateParams = {
+        user_name: personalInfo.fullName || 'Resume User',
+        to_email: shareEmail,
+        to_name: shareEmail.split('@')[0],
+        from_name: personalInfo.fullName || 'ResumeAI',
+        reply_to: personalInfo.email || 'noreply@resumeai.com',
+        message: `Hi! ${personalInfo.fullName || 'A user'} has shared a resume with you via ResumeAI. Open the link to view it: ${window.location.href}`,
+        download_link: window.location.href,
+      };
 
-      const data = {
-        service_id: 'service_lf4pzre',
+      console.log('📧 Sending EmailJS request:', { serviceId, templateId, publicKey, templateParams });
+
+      const payload = {
+        service_id: serviceId,
         template_id: templateId,
-        user_id: 'u01NJS_ZbqnoN7kVS',
-        template_params: {
-          user_name: personalInfo.fullName || 'User',
-          to_email: shareEmail,
-          download_link: downloadUrl,
-          message: `Check out the resume for ${personalInfo.fullName || 'User'}`
-        }
+        user_id: publicKey,
+        template_params: templateParams,
       };
 
       const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload),
       });
 
+      const responseText = await response.text();
+      console.log('📧 EmailJS response:', response.status, responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `EmailJS returned status ${response.status}`);
+        throw new Error(`EmailJS Error (${response.status}): ${responseText}`);
       }
 
-      toast.success('Email sent successfully!', { id: toastId });
+      toast.success(`Email sent to ${shareEmail}!`, { id: toastId });
       setShareModalOpen(false);
       setShareEmail('');
     } catch (err: any) {
-      console.error('Share via email error:', err);
-      toast.error(err.message || 'Failed to send email', { id: toastId });
+      console.error('❌ Share via email error:', err);
+      toast.error(err.message || 'Failed to send email. Check console for details.', { id: toastId });
     }
   };
 

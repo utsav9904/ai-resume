@@ -7,9 +7,10 @@ PROJECT INFORMATION:
 Project Name    : ResumeAI (Full-Stack AI-Powered Resume Builder)
 Live Website    : https://ai-resume-three-ecru.vercel.app/
 Repository      : utsav9904/ai-resume
-Report Date     : July 25, 2026
+Report Date     : July 31, 2026
 Tech Stack      : React 18 (Vite), TypeScript, Tailwind CSS, Zustand, 
-                  Node.js / Express, MongoDB & Mongoose, OpenAI API, 
+                  Node.js / Express, MongoDB & Mongoose, Firebase Auth,
+                  EmailJS, OpenAI API, 
                   jsPDF & html2canvas-pro, docx
 
 ================================================================================
@@ -18,11 +19,12 @@ Tech Stack      : React 18 (Vite), TypeScript, Tailwind CSS, Zustand,
 ResumeAI is a modern web application designed to help job seekers generate ATS-optimized, 
 professionally formatted resumes in minutes using artificial intelligence.
 
-Since its initial commit on June 19, 2026, the application has evolved through 6 major 
+Since its initial commit on June 19, 2026, the application has evolved through 9 major 
 development phases—transitioning from a minimal viable product (MVP) to a feature-packed 
 resume builder featuring AI content generation, job tailoring, customizable FlowCV-style 
 layouts, multi-page card previews, flexible page sizes (A4, Letter, Legal, Executive, Custom), 
-and dual-format export capability (PDF & DOCX).
+dual-format export (PDF & DOCX), Firebase Auth (Google, Phone OTP, Facebook), MongoDB cloud 
+persistence, EmailJS email sharing, and a unified Vercel serverless deployment.
 
 ================================================================================
 2. MILESTONE & DEVELOPMENT PHASES TIMELINE
@@ -92,6 +94,51 @@ Timeline: July 25, 2026 (12:43 - 13:36 IST)
 * 2026-07-25 13:36 IST [cd4d23c] Implemented Page Size Selector (A4, Letter, Legal, Executive, Custom mm) 
                                  with matching dimension calculations for PDF & DOCX exports.
 
+[PHASE 7] FIREBASE AUTH — SOCIAL & PHONE OTP LOGIN
+--------------------------------------------------------------------------------
+Timeline: July 31, 2026 (Morning session, IST)
+
+* 2026-07-31 [9d9bfd6] Integrated Firebase Auth with Google Sign-In, Facebook Login, and Phone OTP.
+* 2026-07-31 [74d2dff] Configured real Firebase project credentials (ai-resume-4900a).
+* 2026-07-31 [2ea7f02] Added popup-blocked fallback to automatically switch to redirect-based auth.
+* 2026-07-31 [c338d66] Fixed auth/popup-blocked edge case with awaited redirect fallback.
+* 2026-07-31 [cd74a63] Improved error messaging for Firebase SMS region policy restrictions.
+* 2026-07-31 [fddb662] Added country code selector (+91, +1, etc.) for Phone OTP login.
+* 2026-07-31 [c13508e] Hardened auth flow with direct Firebase session fallback for seamless login.
+* 2026-07-31 [952f6ca] Fixed redirect loop by persisting user state in AuthContext.
+* 2026-07-31 [8e4b83c] Guaranteed seamless dashboard navigation with resilient session fallback.
+* 2026-07-31 [45e7a04] Enabled Facebook Login and Sign Up flows.
+* 2026-07-31 [388315a] Re-enabled Facebook login with popup-blocker redirect fallback.
+* 2026-07-31 [9905d91] Added clear error message for Firebase billing-not-enabled on Phone OTP.
+* 2026-07-31 [037e9ef] Resolved TypeScript import errors and auth/billing-not-enabled handling.
+* 2026-07-31 [a945102] Removed unused Facebook handler; finalized Phone OTP country code selector.
+* 2026-07-31 [35f7ed7] Fixed reCAPTCHA "already rendered in element" error by clearing container.
+* 2026-07-31 [2e19d49] Guaranteed instant dashboard navigation upon OTP verification success.
+
+[PHASE 8] EMAIL SHARING, FIREBASE STORAGE & UI FEEDBACK
+--------------------------------------------------------------------------------
+Timeline: July 31, 2026 (Afternoon session, IST)
+
+* 2026-07-31 [e9fa6c8] Integrated react-hot-toast for smooth visual feedback across builder and dashboard.
+* 2026-07-31 [4fd9a0c] Fixed Create New Resume on live site with local session fallback.
+* 2026-07-31 [06e52cc] Added "Share via Email" option to the export dropdown menu.
+* 2026-07-31 [1ffb778] Implemented robust localStorage fallback for offline resume save/load.
+* 2026-07-31 [3a07ec8] Integrated EmailJS + Firebase Storage for secure PDF sharing via email.
+* 2026-07-31 [228a6c1] Fixed instant local resume loading and unique local IDs to prevent overwrite.
+* 2026-07-31 [1e9a8e9] Integrated Firebase Firestore cloud database for cross-device resume sync on login.
+
+[PHASE 9] MONGODB CLOUD MIGRATION & VERCEL SERVERLESS DEPLOYMENT
+--------------------------------------------------------------------------------
+Timeline: July 31, 2026 (Evening session, IST)
+
+* 2026-07-31 [a8a7cce] Created vercel.json for unified serverless deployment of Express/MongoDB backend.
+                        - /api/* routes serve the Node.js Express backend as Vercel functions
+                        - All other routes serve the React SPA static build
+* 2026-07-31 [36ae31c] Set EmailJS Template ID (template_x38j328) for Share via Email feature.
+                        - Added Firebase Storage → EmailJS pipeline with fallback URL on storage error
+                        - Added detailed debug logging to diagnose email delivery issues
+                        - Hardcoded template ID as fallback for Vercel env var availability
+
 ================================================================================
 3. COMPLETE CHRONOLOGICAL COMMITS LOG
 ================================================================================
@@ -105,9 +152,9 @@ f7196bf     | 2026-06-19 18:40:54 +0530 | num    | fix: production build step an
 40c5baf     | 2026-06-19 18:59:35 +0530 | num    | fix: vercel SPA routing 404
 977b7ec     | 2026-06-19 19:02:28 +0530 | num    | feat: add next and previous navigation buttons
 3774d86     | 2026-06-20 15:27:41 +0530 | num    | feat: Add new AI features, templates, drag-and-drop, and UI improvements
-7d9db1d     | 2026-06-20 16:04:03 +0530 | num    | feat: Landing page, Projects/Certs tabs, mobile sidebar, auto-save, job tailor UI, dashboard improvements, store reset bug fix
+7d9db1d     | 2026-06-20 16:04:03 +0530 | num    | feat: Landing page, Projects/Certs tabs, mobile sidebar, auto-save, job tailor UI, dashboard improvements
 5503b2c     | 2026-06-20 16:15:10 +0530 | num    | fix: use React Router Link for Back to Dashboard to prevent logout on navigation
-390ae17     | 2026-06-20 16:19:01 +0530 | num    | fix: harden AuthContext - trust valid JWT even when backend unreachable, preventing accidental logout
+390ae17     | 2026-06-20 16:19:01 +0530 | num    | fix: harden AuthContext - trust valid JWT even when backend unreachable
 342c7dd     | 2026-06-20 16:22:47 +0530 | num    | fix: clear resume store on login/logout to prevent user data leaking between sessions
 b429b7b     | 2026-06-20 16:26:20 +0530 | num    | seo: add meta tags, OG/Twitter cards, JSON-LD structured data, sitemap.xml, robots.txt, Inter font
 75781f8     | 2026-06-20 16:35:05 +0530 | num    | feat: add SEO blog page and link it in nav and footer
@@ -123,19 +170,51 @@ f0c0722     | 2026-07-25 12:43:50 +0530 | num    | Update README with live home 
 4fcdad9     | 2026-07-25 12:48:35 +0530 | num    | Add future features roadmap page, navbar roadmap link, and README roadmap section
 1d3cd9a     | 2026-07-25 13:30:50 +0530 | num    | Add DOCX export, multi-page A4 card sheets preview, export dropdown, and backend DB fallback
 cd4d23c     | 2026-07-25 13:36:03 +0530 | num    | Add Page Size selector (A4, Letter, Legal, Executive, Custom mm) and PDF dimension exporter
+9d9bfd6     | 2026-07-31 (morning)      | num    | feat: add Firebase Auth with Google, Facebook, and Phone OTP support
+74d2dff     | 2026-07-31                | num    | feat: configure real Firebase project credentials (ai-resume-4900a)
+2ea7f02     | 2026-07-31                | num    | fix: handle auth/popup-blocked with automatic redirect fallback
+c338d66     | 2026-07-31                | num    | fix: await popup-blocked redirect and add clear unauthorized domain handling
+cd74a63     | 2026-07-31                | num    | fix: improve error message for Firebase SMS region policy restrictions
+fddb662     | 2026-07-31                | num    | feat: add country code selector for phone login and remove facebook option
+c13508e     | 2026-07-31                | num    | fix: make auth flow resilient with direct Firebase session fallback
+952f6ca     | 2026-07-31                | num    | fix: resolve redirect loop by persisting user state in AuthContext
+8e4b83c     | 2026-07-31                | num    | fix: guarantee seamless dashboard navigation with resilient session fallback
+45e7a04     | 2026-07-31                | num    | feat: enable Facebook Login and Sign Up options
+388315a     | 2026-07-31                | num    | feat: re-enable Facebook login and sign up with pop-up blocker fallback
+9905d91     | 2026-07-31                | num    | fix: add clear error message for Firebase billing-not-enabled on Phone OTP
+037e9ef     | 2026-07-31                | num    | fix: resolve TypeScript imports and handle auth/billing-not-enabled error for Phone OTP
+a945102     | 2026-07-31                | num    | fix: remove unused Facebook handler and finalize Phone OTP country code selector
+35f7ed7     | 2026-07-31                | num    | fix: resolve reCAPTCHA already rendered in element error by clearing container innerHTML
+2e19d49     | 2026-07-31                | num    | fix: guarantee instant dashboard navigation upon OTP verification success
+e9fa6c8     | 2026-07-31 (afternoon)    | num    | feat: enhance UI smoothness with react-hot-toast for visual feedback
+4fd9a0c     | 2026-07-31                | num    | fix: allow create new resume to function on live site via local session fallback
+06e52cc     | 2026-07-31                | num    | feat: add share via email option to export menu
+1ffb778     | 2026-07-31                | num    | fix: robust local storage fallback for saving and loading resumes in offline mode
+3a07ec8     | 2026-07-31                | num    | feat: integrate emailjs with firebase storage for secure pdf sharing via email
+228a6c1     | 2026-07-31                | num    | fix: instant local resume loading and unique local IDs to prevent overwrite
+1e9a8e9     | 2026-07-31                | num    | feat: integrate firebase firestore cloud database for cross-device resume sync on user login
+a8a7cce     | 2026-07-31 (evening)      | num    | feat: add vercel.json serverless deployment for Express Node.js MongoDB backend
+36ae31c     | 2026-07-31                | num    | Fix: Set EmailJS template ID template_x38j328 for share via email
 
 ================================================================================
 4. KEY METRICS & FEATURE BREAKDOWN
 ================================================================================
-- Total Commits        : 25 commits across 4 active development dates
+- Total Commits        : 46 commits across 5 active development dates
 - Primary Languages    : TypeScript, TSX, HTML, CSS
 - State Management     : Zustand (`useResumeStore.ts`)
-- Key Export Formats   : PDF (jsPDF + html2canvas-pro), DOCX (`docx` library)
+- Authentication       : Firebase Auth — Email/Password, Google SSO, Facebook Login, Phone OTP
+- Cloud Database       : MongoDB Atlas via Node.js/Express REST API (Vercel Serverless)
+- Offline Support      : localStorage fallback with Cloud-First sync strategy
+- Key Export Formats   : PDF (jsPDF + html2canvas-pro), DOCX (`docx` library), Plain Text
+- Email Sharing        : EmailJS + Firebase Storage pipeline (template_x38j328)
 - Page Sizes Supported : A4 (210x297mm), US Letter (215.9x279.4mm), 
                          US Legal (215.9x355.6mm), Executive (184.15x266.7mm), 
                          Custom dimensions in millimeters
 - Security Highlights  : Strict owner checks on MongoDB REST endpoints, JWT validation, 
-                         Zustand store session wipes on auth transition.
+                         Zustand store session wipes on auth transition,
+                         Firebase Auth rules for Storage access control.
+- Deployment           : Vercel unified deployment (React SPA + Express serverless functions)
+                         Live URL: https://ai-resume-three-ecru.vercel.app/
 
 ================================================================================
 END OF REPORT
