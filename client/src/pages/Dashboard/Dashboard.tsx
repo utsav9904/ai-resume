@@ -79,8 +79,9 @@ const Dashboard = () => {
       toast.success('Resume created', { id: toastId });
       navigate(`/builder/${res.data._id}`);
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to create resume', { id: toastId });
+      console.warn('Backend unreachable, using local fallback:', err);
+      toast.success('Started Local Session', { id: toastId });
+      navigate('/builder');
     }
   };
 
