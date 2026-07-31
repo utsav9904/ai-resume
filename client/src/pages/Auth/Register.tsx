@@ -5,7 +5,9 @@ import api from '../../services/api';
 import { ArrowLeft } from 'lucide-react';
 import {
   signInWithGooglePopup,
+  signInWithFacebookPopup,
   signInWithGoogleRedirect,
+  signInWithFacebookRedirect,
   checkRedirectResult
 } from '../../config/firebase';
 import { useEffect } from 'react';
@@ -85,6 +87,29 @@ const Register = () => {
         setError('Pop-up was blocked by browser. Redirecting to Google...');
         try {
           await signInWithGoogleRedirect();
+        } catch (redirectErr: any) {
+          setError(formatFirebaseError(redirectErr));
+        }
+      } else {
+        setError(formatFirebaseError(err));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookSignUp = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await signInWithFacebookPopup();
+      await handleFirebaseLoginSuccess(res.user);
+    } catch (err: any) {
+      console.error('Facebook Sign Up Error:', err);
+      if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked by browser. Redirecting to Facebook...');
+        try {
+          await signInWithFacebookRedirect();
         } catch (redirectErr: any) {
           setError(formatFirebaseError(redirectErr));
         }
