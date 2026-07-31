@@ -5,9 +5,7 @@ import api from '../../services/api';
 import { ArrowLeft, Phone, Mail, ShieldCheck } from 'lucide-react';
 import {
   signInWithGooglePopup,
-  signInWithFacebookPopup,
   signInWithGoogleRedirect,
-  signInWithFacebookRedirect,
   checkRedirectResult,
   setupRecaptcha,
   sendPhoneOtp
@@ -15,13 +13,36 @@ import {
 import type { ConfirmationResult } from 'firebase/auth';
 import { useEffect } from 'react';
 
+const COUNTRY_CODES = [
+  { code: '+91', label: '🇮🇳 India (+91)' },
+  { code: '+1', label: '🇺🇸 USA / Canada (+1)' },
+  { code: '+44', label: '🇬🇧 UK (+44)' },
+  { code: '+61', label: '🇦🇺 Australia (+61)' },
+  { code: '+49', label: '🇩🇪 Germany (+49)' },
+  { code: '+33', label: '🇫🇷 France (+33)' },
+  { code: '+971', label: '🇦🇪 UAE (+971)' },
+  { code: '+65', label: '🇸🇬 Singapore (+65)' },
+  { code: '+966', label: '🇸🇦 Saudi Arabia (+966)' },
+  { code: '+55', label: '🇧🇷 Brazil (+55)' },
+  { code: '+52', label: '🇲🇽 Mexico (+52)' },
+  { code: '+81', label: '🇯🇵 Japan (+81)' },
+  { code: '+234', label: '🇳🇬 Nigeria (+234)' },
+  { code: '+92', label: '🇵🇰 Pakistan (+92)' },
+  { code: '+880', label: '🇧🇩 Bangladesh (+880)' },
+  { code: '+62', label: '🇮🇩 Indonesia (+62)' },
+  { code: '+63', label: '🇵🇭 Philippines (+63)' },
+  { code: '+34', label: '🇪🇸 Spain (+34)' },
+  { code: '+39', label: '🇮🇹 Italy (+39)' }
+];
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'email' | 'phone'>('email');
   
   // Phone Auth states
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [phoneInput, setPhoneInput] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [otpSent, setOtpSent] = useState(false);
@@ -74,7 +95,6 @@ const Login = () => {
     return err.message || 'Social sign-in failed';
   };
 
-
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
@@ -98,39 +118,18 @@ const Login = () => {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const res = await signInWithFacebookPopup();
-      await handleFirebaseLoginSuccess(res.user);
-    } catch (err: any) {
-      console.error('Facebook Sign In Error:', err);
-      if (err.code === 'auth/popup-blocked') {
-        setError('Pop-up was blocked by browser. Redirecting to Facebook...');
-        try {
-          await signInWithFacebookRedirect();
-        } catch (redirectErr: any) {
-          setError(formatFirebaseError(redirectErr));
-        }
-      } else {
-        setError(formatFirebaseError(err));
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneNumber) return setError('Please enter a valid phone number with country code (e.g. +1234567890)');
+    const cleanDigits = phoneInput.replace(/\D/g, '');
+    if (!cleanDigits || cleanDigits.length < 5) {
+      return setError('Please enter a valid phone number');
+    }
+    const fullPhoneNumber = `${countryCode}${cleanDigits}`;
     setError('');
     setLoading(true);
     try {
       const appVerifier = setupRecaptcha('recaptcha-container');
-      const confirmation = await sendPhoneOtp(phoneNumber, appVerifier);
+      const confirmation = await sendPhoneOtp(fullPhoneNumber, appVerifier);
       setConfirmationResult(confirmation);
       setOtpSent(true);
     } catch (err: any) {
@@ -140,6 +139,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
 
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -200,18 +200,6 @@ const Login = () => {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
             Continue with Google
-          </button>
-
-          <button
-            type="button"
-            onClick={handleFacebookLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-[#1877F2] text-white font-medium py-2.5 px-4 rounded-xl hover:bg-[#166fe5] transition shadow-sm disabled:opacity-50"
-          >
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-            Continue with Facebook
           </button>
         </div>
 
@@ -281,15 +269,28 @@ const Login = () => {
             {!otpSent ? (
               <form className="space-y-4" onSubmit={handleSendOtp}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (with country code)</label>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={e => setPhoneNumber(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition"
-                    placeholder="+1234567890"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={e => setCountryCode(e.target.value)}
+                      className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition text-sm bg-gray-50 max-w-[140px]"
+                    >
+                      {COUNTRY_CODES.map(c => (
+                        <option key={c.code} value={c.code}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      value={phoneInput}
+                      onChange={e => setPhoneInput(e.target.value)}
+                      required
+                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition"
+                      placeholder="98765 43210"
+                    />
+                  </div>
                 </div>
                 <button
                   type="submit"
