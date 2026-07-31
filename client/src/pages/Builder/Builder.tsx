@@ -1267,6 +1267,17 @@ const Builder = () => {
                     <span>🖨️ Print / Vector PDF</span>
                   </button>
                   <button
+                    onClick={() => {
+                      setExportMenuOpen(false);
+                      const subject = encodeURIComponent(`Resume - ${personalInfo.fullName || 'User'}`);
+                      const body = encodeURIComponent(`Please find my resume attached.\n\n(Note: Please attach the downloaded PDF to this email)`);
+                      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
+                  >
+                    <span>📧 Share via Email</span>
+                  </button>
+                  <button
                     onClick={() => { setExportMenuOpen(false); exportToDocx(store, `${personalInfo.fullName || 'resume'}.docx`); }}
                     className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition font-semibold text-teal-800"
                   >
