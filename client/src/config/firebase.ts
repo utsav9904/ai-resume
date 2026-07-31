@@ -37,8 +37,19 @@ export const checkRedirectResult = () => getRedirectResult(auth);
 
 export const setupRecaptcha = (containerId: string): RecaptchaVerifier => {
   if ((window as any).recaptchaVerifier) {
-    (window as any).recaptchaVerifier.clear();
+    try {
+      (window as any).recaptchaVerifier.clear();
+    } catch (e) {
+      console.warn('Could not clear existing recaptchaVerifier:', e);
+    }
+    (window as any).recaptchaVerifier = null;
   }
+
+  const container = document.getElementById(containerId);
+  if (container) {
+    container.innerHTML = '';
+  }
+
   const verifier = new RecaptchaVerifier(auth, containerId, {
     size: 'invisible',
   });
