@@ -35,7 +35,14 @@ const isTokenExpired = (token: string): boolean => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const resetResume = useResumeStore((state) => state.resetResume);
@@ -52,24 +59,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If the JWT is expired, log out immediately
       if (isTokenExpired(storedToken)) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setToken(null);
         setUser(null);
-        resetResume(); // Clear any leftover resume data
+        resetResume();
         setLoading(false);
         return;
       }
 
-      // Token is valid — trust it
       setToken(storedToken);
 
-      // Try to fetch full user profile (best effort — do NOT log out if it fails)
+      // Fetch user profile if backend API is reachable
       try {
         const response = await api.get('/api/auth/profile');
         if (response?.data) {
           setUser(response.data);
+          localStorage.setItem('user', JSON.stringify(response.data));
         }
       } catch {
-        // Backend unreachable — stay logged in with JWT
+        // Backend unreachable or offline — stay logged in with cached user/token
       }
 
       setLoading(false);
@@ -79,15 +87,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (newToken: string, newUser: User) => {
-    resetResume(); // 🔑 Clear previous user's resume data before loading new session
+    resetResume();
     localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
-    resetResume(); // 🔑 Clear resume data on logout so the next user starts fresh
+    resetResume();
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
