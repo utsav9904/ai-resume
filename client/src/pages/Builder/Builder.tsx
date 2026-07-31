@@ -187,14 +187,28 @@ const Builder = () => {
   // Reset store on new resume, load on existing
   useEffect(() => {
     if (id) {
+      const localData = localStorage.getItem(`resume_${id}`);
+      if (localData && (id.startsWith('local_') || !navigator.onLine)) {
+        try {
+          setResume(JSON.parse(localData));
+          setSaveStatus('saved');
+          return;
+        } catch (e) {
+          console.error('Error parsing local resume:', e);
+        }
+      }
+
       api.get(`/api/resumes/${id}`).then(res => {
         if (res.data) setResume(res.data);
       }).catch(err => {
         console.warn('Backend load failed, checking local storage:', err);
-        const localData = localStorage.getItem(`resume_${id}`);
         if (localData) {
-          setResume(JSON.parse(localData));
-          toast.success('Loaded from local storage');
+          try {
+            setResume(JSON.parse(localData));
+            toast.success('Loaded from local storage');
+          } catch (e) {
+            console.error('Failed to parse local resume:', e);
+          }
         } else {
           console.error('Failed to load resume:', err);
         }
@@ -214,20 +228,20 @@ const Builder = () => {
         template, templateColor, customization,
       };
 
-      const localId = id || 'local_draft';
+      const localId = id || `local_${Date.now()}`;
       localStorage.setItem(`resume_${localId}`, JSON.stringify({ _id: localId, ...payload }));
 
       try {
-        if (id && id !== 'local_draft') {
+        if (id && !id.startsWith('local_')) {
           await api.put(`/api/resumes/${id}`, payload);
-        } else {
+        } else if (!id) {
           const res = await api.post('/api/resumes', payload);
-          localStorage.removeItem('resume_local_draft'); // Clean up draft on successful backend save
+          localStorage.removeItem(`resume_${localId}`); // Clean up draft on successful backend save
           navigate(`/builder/${res.data._id}`, { replace: true });
         }
       } catch (backendErr) {
         console.warn('Backend save failed, saved to local storage instead.');
-        if (!id) navigate(`/builder/local_draft`, { replace: true });
+        if (!id) navigate(`/builder/${localId}`, { replace: true });
       }
 
       setSaveStatus('saved');
