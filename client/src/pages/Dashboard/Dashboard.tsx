@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, FileText, Edit3, Trash2, Copy, LogOut, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
+
+import { resumeService } from '../../services/resumeService';
 
 interface ResumeItem {
   _id: string;
@@ -33,45 +34,20 @@ const Dashboard = () => {
   const [duplicating, setDuplicating] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/api/resumes')
-      .then(res => setResumes(res.data))
-      .catch((err) => {
-        console.error('Backend unreachable:', err);
-        toast.error('Loaded in Offline Mode');
+    setLoading(true);
+    resumeService.getUserResumes(user?.id)
+      .then(list => setResumes(list as ResumeItem[]))
+      .catch(err => {
+        console.error('Database fetch error:', err);
+        toast.error('Failed to load resumes from cloud');
       })
-      .finally(() => {
-        // Load local resumes from localStorage
-        const localResumes: ResumeItem[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('resume_')) {
-            try {
-              const data = JSON.parse(localStorage.getItem(key) || '{}');
-              if (data._id) localResumes.push(data);
-            } catch (e) {}
-          }
-        }
-        setResumes(prev => {
-          const remoteIds = new Set(prev.map(r => r._id));
-          const onlyLocal = localResumes.filter(r => !remoteIds.has(r._id));
-          // Note: in a real sync we'd check timestamps, but this is fine for fallback
-          return [...onlyLocal, ...prev];
-        });
-        setLoading(false);
-      });
-  }, []);
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
   const deleteResume = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this resume?')) return;
     try {
-      if (id.startsWith('local_')) {
-        localStorage.removeItem(`resume_${id}`);
-        setResumes(prev => prev.filter(r => r._id !== id));
-        toast.success('Local resume deleted successfully');
-        return;
-      }
-      await api.delete(`/api/resumes/${id}`);
-      localStorage.removeItem(`resume_${id}`); // clear local cache too
+      await resumeService.deleteResume(id, user?.id);
       setResumes(prev => prev.filter(r => r._id !== id));
       toast.success('Resume deleted successfully');
     } catch (err) {
@@ -84,30 +60,26 @@ const Dashboard = () => {
     setDuplicating(resume._id);
     const toastId = toast.loading('Duplicating resume...');
     try {
-      const { _id: _1, userId: _2, createdAt: _3, updatedAt: _4, __v: _5, ...resumeData } = resume;
-      const res = await api.post('/api/resumes', {
-        ...resumeData,
-        title: `${resumeData.title || 'Resume'} (Copy)`,
-      });
-      setResumes(prev => [res.data, ...prev]);
+      const duplicated = await resumeService.duplicateResume(resume as any, user?.id);
+      setResumes(prev => [duplicated as ResumeItem, ...prev]);
       toast.success('Resume duplicated', { id: toastId });
     } catch (err) {
       console.error(err);
       toast.error('Failed to duplicate resume', { id: toastId });
+    } finally {
+      setDuplicating(null);
     }
-    finally { setDuplicating(null); }
   };
 
   const createNewResume = async () => {
     const toastId = toast.loading('Creating new resume...');
     try {
-      const res = await api.post('/api/resumes', { title: 'Untitled Resume' });
+      const newId = await resumeService.saveResume(undefined, { title: 'Untitled Resume' }, user?.id);
       toast.success('Resume created', { id: toastId });
-      navigate(`/builder/${res.data._id}`);
+      navigate(`/builder/${newId}`);
     } catch (err) {
-      console.warn('Backend unreachable, using local fallback:', err);
-      toast.success('Started Local Session', { id: toastId });
-      navigate('/builder');
+      console.error('Failed to create resume:', err);
+      toast.error('Failed to create resume', { id: toastId });
     }
   };
 

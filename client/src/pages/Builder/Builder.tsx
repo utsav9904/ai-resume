@@ -19,6 +19,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { CSS } from '@dnd-kit/utilities';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage, auth } from '../../config/firebase';
+import { resumeService } from '../../services/resumeService';
 
 const sectionLabels: { [key: string]: string } = {
   summary: 'Professional Summary',
@@ -187,31 +188,15 @@ const Builder = () => {
   // Reset store on new resume, load on existing
   useEffect(() => {
     if (id) {
-      const localData = localStorage.getItem(`resume_${id}`);
-      if (localData && (id.startsWith('local_') || !navigator.onLine)) {
-        try {
-          setResume(JSON.parse(localData));
+      resumeService.getResumeById(id, auth.currentUser?.uid).then(data => {
+        if (data) {
+          setResume(data as any);
           setSaveStatus('saved');
-          return;
-        } catch (e) {
-          console.error('Error parsing local resume:', e);
-        }
-      }
-
-      api.get(`/api/resumes/${id}`).then(res => {
-        if (res.data) setResume(res.data);
-      }).catch(err => {
-        console.warn('Backend load failed, checking local storage:', err);
-        if (localData) {
-          try {
-            setResume(JSON.parse(localData));
-            toast.success('Loaded from local storage');
-          } catch (e) {
-            console.error('Failed to parse local resume:', e);
-          }
         } else {
-          console.error('Failed to load resume:', err);
+          toast.error('Resume not found');
         }
+      }).catch(err => {
+        console.error('Failed to load resume:', err);
       });
     } else {
       resetResume();
@@ -228,25 +213,16 @@ const Builder = () => {
         template, templateColor, customization,
       };
 
-      const localId = id || `local_${Date.now()}`;
-      localStorage.setItem(`resume_${localId}`, JSON.stringify({ _id: localId, ...payload }));
+      const savedId = await resumeService.saveResume(id, payload, auth.currentUser?.uid);
 
-      try {
-        if (id && !id.startsWith('local_')) {
-          await api.put(`/api/resumes/${id}`, payload);
-        } else if (!id) {
-          const res = await api.post('/api/resumes', payload);
-          localStorage.removeItem(`resume_${localId}`); // Clean up draft on successful backend save
-          navigate(`/builder/${res.data._id}`, { replace: true });
-        }
-      } catch (backendErr) {
-        console.warn('Backend save failed, saved to local storage instead.');
-        if (!id) navigate(`/builder/${localId}`, { replace: true });
+      if (!id && savedId) {
+        navigate(`/builder/${savedId}`, { replace: true });
       }
 
       setSaveStatus('saved');
-      if (!silent) toast.success('Resume saved successfully');
-    } catch {
+      if (!silent) toast.success('Resume saved successfully!');
+    } catch (err) {
+      console.error(err);
       setSaveStatus('unsaved');
       if (!silent) toast.error('Failed to save resume');
     } finally {
