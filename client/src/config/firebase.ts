@@ -4,6 +4,8 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult
@@ -27,6 +29,11 @@ export const facebookProvider = new FacebookAuthProvider();
 
 export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
 export const signInWithFacebookPopup = () => signInWithPopup(auth, facebookProvider);
+
+export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
+export const signInWithFacebookRedirect = () => signInWithRedirect(auth, facebookProvider);
+export const checkRedirectResult = () => getRedirectResult(auth);
+
 
 export const setupRecaptcha = (containerId: string): RecaptchaVerifier => {
   if ((window as any).recaptchaVerifier) {

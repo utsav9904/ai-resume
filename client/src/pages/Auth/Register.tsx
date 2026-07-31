@@ -5,8 +5,12 @@ import api from '../../services/api';
 import { ArrowLeft } from 'lucide-react';
 import {
   signInWithGooglePopup,
-  signInWithFacebookPopup
+  signInWithFacebookPopup,
+  signInWithGoogleRedirect,
+  signInWithFacebookRedirect,
+  checkRedirectResult
 } from '../../config/firebase';
+import { useEffect } from 'react';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -32,9 +36,24 @@ const Register = () => {
     }
   };
 
+  useEffect(() => {
+    checkRedirectResult()
+      .then((result) => {
+        if (result && result.user) {
+          handleFirebaseLoginSuccess(result.user);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
   const formatFirebaseError = (err: any) => {
     if (err.code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key'))) {
       return 'Firebase API key is missing. Please paste your VITE_FIREBASE_API_KEY in client/.env (or Vercel Settings).';
+    }
+    if (err.code === 'auth/popup-blocked') {
+      return 'Pop-up window was blocked by your browser. Attempting redirect...';
     }
     return err.message || 'Social sign-up failed';
   };
@@ -47,7 +66,12 @@ const Register = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(formatFirebaseError(err));
+      if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked. Redirecting to Google Sign Up...');
+        signInWithGoogleRedirect();
+      } else {
+        setError(formatFirebaseError(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -61,11 +85,17 @@ const Register = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(formatFirebaseError(err));
+      if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked. Redirecting to Facebook Sign Up...');
+        signInWithFacebookRedirect();
+      } else {
+        setError(formatFirebaseError(err));
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
 
   const handleSubmit = async (e: React.FormEvent) => {

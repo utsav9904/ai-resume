@@ -6,10 +6,14 @@ import { ArrowLeft, Phone, Mail, ShieldCheck } from 'lucide-react';
 import {
   signInWithGooglePopup,
   signInWithFacebookPopup,
+  signInWithGoogleRedirect,
+  signInWithFacebookRedirect,
+  checkRedirectResult,
   setupRecaptcha,
   sendPhoneOtp
 } from '../../config/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
+import { useEffect } from 'react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -42,9 +46,24 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    checkRedirectResult()
+      .then((result) => {
+        if (result && result.user) {
+          handleFirebaseLoginSuccess(result.user);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
   const formatFirebaseError = (err: any) => {
     if (err.code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key'))) {
       return 'Firebase API key is missing. Please paste your VITE_FIREBASE_API_KEY in client/.env (or Vercel Settings).';
+    }
+    if (err.code === 'auth/popup-blocked') {
+      return 'Pop-up window was blocked by your browser. Attempting redirect...';
     }
     return err.message || 'Social sign-in failed';
   };
@@ -57,7 +76,12 @@ const Login = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(formatFirebaseError(err));
+      if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked. Redirecting to Google Sign-In...');
+        signInWithGoogleRedirect();
+      } else {
+        setError(formatFirebaseError(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -71,11 +95,17 @@ const Login = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(formatFirebaseError(err));
+      if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked. Redirecting to Facebook Login...');
+        signInWithFacebookRedirect();
+      } else {
+        setError(formatFirebaseError(err));
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
