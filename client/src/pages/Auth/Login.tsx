@@ -42,6 +42,13 @@ const Login = () => {
     }
   };
 
+  const formatFirebaseError = (err: any) => {
+    if (err.code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key'))) {
+      return 'Firebase API key is missing. Please paste your VITE_FIREBASE_API_KEY in client/.env (or Vercel Settings).';
+    }
+    return err.message || 'Social sign-in failed';
+  };
+
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
@@ -50,7 +57,7 @@ const Login = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Google sign in failed');
+      setError(formatFirebaseError(err));
     } finally {
       setLoading(false);
     }
@@ -64,7 +71,7 @@ const Login = () => {
       await handleFirebaseLoginSuccess(res.user);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Facebook sign in failed');
+      setError(formatFirebaseError(err));
     } finally {
       setLoading(false);
     }
@@ -82,11 +89,12 @@ const Login = () => {
       setOtpSent(true);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to send SMS OTP code');
+      setError(formatFirebaseError(err));
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
