@@ -36,16 +36,42 @@ const Dashboard = () => {
     api.get('/api/resumes')
       .then(res => setResumes(res.data))
       .catch((err) => {
-        console.error(err);
-        toast.error('Failed to load resumes');
+        console.error('Backend unreachable:', err);
+        toast.error('Loaded in Offline Mode');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        // Load local resumes from localStorage
+        const localResumes: ResumeItem[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('resume_')) {
+            try {
+              const data = JSON.parse(localStorage.getItem(key) || '{}');
+              if (data._id) localResumes.push(data);
+            } catch (e) {}
+          }
+        }
+        setResumes(prev => {
+          const remoteIds = new Set(prev.map(r => r._id));
+          const onlyLocal = localResumes.filter(r => !remoteIds.has(r._id));
+          // Note: in a real sync we'd check timestamps, but this is fine for fallback
+          return [...onlyLocal, ...prev];
+        });
+        setLoading(false);
+      });
   }, []);
 
   const deleteResume = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this resume?')) return;
     try {
+      if (id.startsWith('local_')) {
+        localStorage.removeItem(`resume_${id}`);
+        setResumes(prev => prev.filter(r => r._id !== id));
+        toast.success('Local resume deleted successfully');
+        return;
+      }
       await api.delete(`/api/resumes/${id}`);
+      localStorage.removeItem(`resume_${id}`); // clear local cache too
       setResumes(prev => prev.filter(r => r._id !== id));
       toast.success('Resume deleted successfully');
     } catch (err) {

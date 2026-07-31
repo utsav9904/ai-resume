@@ -138,7 +138,16 @@ const Builder = () => {
     if (id) {
       api.get(`/api/resumes/${id}`).then(res => {
         if (res.data) setResume(res.data);
-      }).catch(err => console.error('Failed to load resume:', err));
+      }).catch(err => {
+        console.warn('Backend load failed, checking local storage:', err);
+        const localData = localStorage.getItem(`resume_${id}`);
+        if (localData) {
+          setResume(JSON.parse(localData));
+          toast.success('Loaded from local storage');
+        } else {
+          console.error('Failed to load resume:', err);
+        }
+      });
     } else {
       resetResume();
     }
@@ -153,12 +162,23 @@ const Builder = () => {
         personalInfo, summary, experience, education, skills, projects, certifications,
         template, templateColor, customization,
       };
-      if (id) {
-        await api.put(`/api/resumes/${id}`, payload);
-      } else {
-        const res = await api.post('/api/resumes', payload);
-        navigate(`/builder/${res.data._id}`, { replace: true });
+
+      const localId = id || 'local_draft';
+      localStorage.setItem(`resume_${localId}`, JSON.stringify({ _id: localId, ...payload }));
+
+      try {
+        if (id && id !== 'local_draft') {
+          await api.put(`/api/resumes/${id}`, payload);
+        } else {
+          const res = await api.post('/api/resumes', payload);
+          localStorage.removeItem('resume_local_draft'); // Clean up draft on successful backend save
+          navigate(`/builder/${res.data._id}`, { replace: true });
+        }
+      } catch (backendErr) {
+        console.warn('Backend save failed, saved to local storage instead.');
+        if (!id) navigate(`/builder/local_draft`, { replace: true });
       }
+
       setSaveStatus('saved');
       if (!silent) toast.success('Resume saved successfully');
     } catch {
