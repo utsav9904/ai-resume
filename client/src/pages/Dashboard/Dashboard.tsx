@@ -35,19 +35,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     setLoading(true);
-    resumeService.getUserResumes(user?.id)
+    resumeService.getUserResumes()
       .then(list => setResumes(list as ResumeItem[]))
       .catch(err => {
         console.error('Database fetch error:', err);
         toast.error('Failed to load resumes from cloud');
       })
       .finally(() => setLoading(false));
-  }, [user?.id]);
+  }, []);
 
   const deleteResume = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this resume?')) return;
     try {
-      await resumeService.deleteResume(id, user?.id);
+      await resumeService.deleteResume(id);
       setResumes(prev => prev.filter(r => r._id !== id));
       toast.success('Resume deleted successfully');
     } catch (err) {
@@ -60,7 +60,7 @@ const Dashboard = () => {
     setDuplicating(resume._id);
     const toastId = toast.loading('Duplicating resume...');
     try {
-      const duplicated = await resumeService.duplicateResume(resume as any, user?.id);
+      const duplicated = await resumeService.duplicateResume(resume as any);
       setResumes(prev => [duplicated as ResumeItem, ...prev]);
       toast.success('Resume duplicated', { id: toastId });
     } catch (err) {
@@ -74,7 +74,7 @@ const Dashboard = () => {
   const createNewResume = async () => {
     const toastId = toast.loading('Creating new resume...');
     try {
-      const newId = await resumeService.saveResume(undefined, { title: 'Untitled Resume' }, user?.id);
+      const newId = await resumeService.saveResume(undefined, { title: 'Untitled Resume' });
       toast.success('Resume created', { id: toastId });
       navigate(`/builder/${newId}`);
     } catch (err) {

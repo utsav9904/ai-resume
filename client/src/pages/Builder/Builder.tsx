@@ -188,7 +188,7 @@ const Builder = () => {
   // Reset store on new resume, load on existing
   useEffect(() => {
     if (id) {
-      resumeService.getResumeById(id, auth.currentUser?.uid).then(data => {
+      resumeService.getResumeById(id).then(data => {
         if (data) {
           setResume(data as any);
           setSaveStatus('saved');
@@ -213,7 +213,7 @@ const Builder = () => {
         template, templateColor, customization,
       };
 
-      const savedId = await resumeService.saveResume(id, payload, auth.currentUser?.uid);
+      const savedId = await resumeService.saveResume(id, payload);
 
       if (!id && savedId) {
         navigate(`/builder/${savedId}`, { replace: true });

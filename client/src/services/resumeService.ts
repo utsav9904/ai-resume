@@ -1,15 +1,4 @@
-import { db, auth } from '../config/firebase';
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  serverTimestamp
-} from 'firebase/firestore';
+import api from './api';
 
 export interface ResumeData {
   _id: string;
@@ -28,36 +17,20 @@ export interface ResumeData {
   [key: string]: any;
 }
 
-const getUserId = (providedUserId?: string): string => {
-  return providedUserId || auth.currentUser?.uid || 'guest_user';
-};
-
 export const resumeService = {
-  // Get all resumes for a user
-  async getUserResumes(userId?: string): Promise<ResumeData[]> {
-    const uid = getUserId(userId);
-    const cloudResumes: ResumeData[] = [];
-
-    if (uid !== 'guest_user') {
-      try {
-        const resumesRef = collection(db, 'users', uid, 'resumes');
-        const q = query(resumesRef, orderBy('updatedAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          cloudResumes.push({
-            _id: docSnap.id,
-            ...data,
-            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString()
-          } as ResumeData);
-        });
-      } catch (err) {
-        console.warn('Firestore fetch failed, falling back to local:', err);
+  // Get all resumes for user (MongoDB Express API + LocalStorage fallback)
+  async getUserResumes(): Promise<ResumeData[]> {
+    let mongoResumes: ResumeData[] = [];
+    try {
+      const res = await api.get('/api/resumes');
+      if (Array.isArray(res.data)) {
+        mongoResumes = res.data;
       }
+    } catch (err) {
+      console.warn('MongoDB API fetch failed, falling back to local storage:', err);
     }
 
-    // Merge with LocalStorage resumes
+    // Merge local storage resumes
     const localResumes: ResumeData[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -69,17 +42,14 @@ export const resumeService = {
       }
     }
 
-    const cloudIds = new Set(cloudResumes.map(r => r._id));
-    const onlyLocal = localResumes.filter(r => !cloudIds.has(r._id));
+    const mongoIds = new Set(mongoResumes.map(r => r._id));
+    const onlyLocal = localResumes.filter(r => !mongoIds.has(r._id));
 
-    return [...cloudResumes, ...onlyLocal];
+    return [...mongoResumes, ...onlyLocal];
   },
 
   // Get single resume by ID
-  async getResumeById(resumeId: string, userId?: string): Promise<ResumeData | null> {
-    const uid = getUserId(userId);
-
-    // 1. Try local storage first if local ID
+  async getResumeById(resumeId: string): Promise<ResumeData | null> {
     const localData = localStorage.getItem(`resume_${resumeId}`);
     if (localData && (resumeId.startsWith('local_') || !navigator.onLine)) {
       try {
@@ -87,28 +57,18 @@ export const resumeService = {
       } catch (e) {}
     }
 
-    // 2. Try Firestore Cloud DB
-    if (uid !== 'guest_user' && !resumeId.startsWith('local_')) {
+    if (!resumeId.startsWith('local_')) {
       try {
-        const docRef = doc(db, 'users', uid, 'resumes', resumeId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const resume = {
-            _id: docSnap.id,
-            ...data,
-            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString()
-          } as ResumeData;
-          // Sync to localStorage
-          localStorage.setItem(`resume_${resumeId}`, JSON.stringify(resume));
-          return resume;
+        const res = await api.get(`/api/resumes/${resumeId}`);
+        if (res.data) {
+          localStorage.setItem(`resume_${resumeId}`, JSON.stringify(res.data));
+          return res.data;
         }
       } catch (err) {
-        console.warn('Firestore load failed:', err);
+        console.warn('MongoDB API load failed:', err);
       }
     }
 
-    // 3. Fallback to LocalStorage
     if (localData) {
       try {
         return JSON.parse(localData);
@@ -118,68 +78,72 @@ export const resumeService = {
     return null;
   },
 
-  // Save or Update a resume
-  async saveResume(resumeId: string | undefined, payload: Partial<ResumeData>, userId?: string): Promise<string> {
-    const uid = getUserId(userId);
-    const targetId = resumeId || `resume_${Date.now()}`;
-
+  // Save or Update a resume in MongoDB
+  async saveResume(resumeId: string | undefined, payload: Partial<ResumeData>): Promise<string> {
+    const localId = resumeId || `local_${Date.now()}`;
     const resumeToSave = {
       ...payload,
-      _id: targetId,
+      _id: localId,
       updatedAt: new Date().toISOString()
     };
 
-    // Save to LocalStorage immediately
-    localStorage.setItem(`resume_${targetId}`, JSON.stringify(resumeToSave));
+    localStorage.setItem(`resume_${localId}`, JSON.stringify(resumeToSave));
 
-    // Save to Firestore Cloud DB if user is logged in
-    if (uid !== 'guest_user') {
-      try {
-        const docRef = doc(db, 'users', uid, 'resumes', targetId);
-        await setDoc(docRef, {
-          ...payload,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      } catch (err) {
-        console.warn('Firestore cloud save failed, kept in local storage:', err);
+    try {
+      if (resumeId && !resumeId.startsWith('local_')) {
+        const res = await api.put(`/api/resumes/${resumeId}`, payload);
+        const saved = res.data;
+        localStorage.setItem(`resume_${saved._id}`, JSON.stringify(saved));
+        return saved._id;
+      } else {
+        const res = await api.post('/api/resumes', payload);
+        const saved = res.data;
+        localStorage.removeItem(`resume_${localId}`);
+        localStorage.setItem(`resume_${saved._id}`, JSON.stringify(saved));
+        return saved._id;
       }
+    } catch (err) {
+      console.warn('MongoDB API save failed, kept in local storage:', err);
+      return localId;
     }
-
-    return targetId;
   },
 
-  // Delete a resume
-  async deleteResume(resumeId: string, userId?: string): Promise<void> {
-    const uid = getUserId(userId);
-
-    // Remove from LocalStorage
+  // Delete a resume from MongoDB
+  async deleteResume(resumeId: string): Promise<void> {
     localStorage.removeItem(`resume_${resumeId}`);
 
-    // Remove from Firestore
-    if (uid !== 'guest_user' && !resumeId.startsWith('local_')) {
+    if (!resumeId.startsWith('local_')) {
       try {
-        const docRef = doc(db, 'users', uid, 'resumes', resumeId);
-        await deleteDoc(docRef);
+        await api.delete(`/api/resumes/${resumeId}`);
       } catch (err) {
-        console.warn('Firestore delete failed:', err);
+        console.warn('MongoDB API delete failed:', err);
       }
     }
   },
 
-  // Duplicate a resume
-  async duplicateResume(resume: ResumeData, userId?: string): Promise<ResumeData> {
-    const uid = getUserId(userId);
-    const newId = `resume_${Date.now()}`;
-    const { _id, ...rest } = resume;
-
-    const duplicated: ResumeData = {
-      ...rest,
-      _id: newId,
-      title: `${resume.title || 'Resume'} (Copy)`,
-      updatedAt: new Date().toISOString()
+  // Duplicate a resume in MongoDB
+  async duplicateResume(resume: ResumeData): Promise<ResumeData> {
+    const { _id: _1, userId: _2, createdAt: _3, updatedAt: _4, __v: _5, ...resumeData } = resume;
+    const payload = {
+      ...resumeData,
+      title: `${resume.title || 'Resume'} (Copy)`
     };
 
-    await this.saveResume(newId, duplicated, uid);
-    return duplicated;
+    try {
+      const res = await api.post('/api/resumes', payload);
+      const saved = res.data;
+      localStorage.setItem(`resume_${saved._id}`, JSON.stringify(saved));
+      return saved;
+    } catch (err) {
+      console.warn('MongoDB API duplicate failed, creating local copy:', err);
+      const newId = `local_${Date.now()}`;
+      const duplicated: ResumeData = {
+        ...payload,
+        _id: newId,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(`resume_${newId}`, JSON.stringify(duplicated));
+      return duplicated;
+    }
   }
 };
