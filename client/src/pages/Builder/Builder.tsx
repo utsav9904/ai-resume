@@ -142,18 +142,24 @@ const Builder = () => {
   const handleShareEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shareEmail) return;
-    
+
     const toastId = toast.loading('Generating PDF and preparing email...');
     try {
-      const blob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
-      if (!blob) throw new Error('Failed to generate PDF');
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_x38j328';
 
-      const uid = auth.currentUser?.uid || 'guest';
-      const fileRef = ref(storage, `resumes/${uid}/shared_${Date.now()}.pdf`);
-      await uploadBytes(fileRef, blob);
-      const downloadUrl = await getDownloadURL(fileRef);
-
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
+      let downloadUrl = '';
+      try {
+        const blob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
+        if (blob) {
+          const uid = auth.currentUser?.uid || 'guest';
+          const fileRef = ref(storage, `resumes/${uid}/shared_${Date.now()}.pdf`);
+          await uploadBytes(fileRef, blob);
+          downloadUrl = await getDownloadURL(fileRef);
+        }
+      } catch (storageErr) {
+        console.warn('Firebase Storage upload warning, proceeding with email notification:', storageErr);
+        downloadUrl = window.location.href; // Fallback link to current resume page
+      }
 
       const data = {
         service_id: 'service_lf4pzre',
@@ -162,7 +168,8 @@ const Builder = () => {
         template_params: {
           user_name: personalInfo.fullName || 'User',
           to_email: shareEmail,
-          download_link: downloadUrl
+          download_link: downloadUrl,
+          message: `Check out the resume for ${personalInfo.fullName || 'User'}`
         }
       };
 
@@ -173,14 +180,15 @@ const Builder = () => {
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        throw new Error(errorText || `EmailJS returned status ${response.status}`);
       }
 
       toast.success('Email sent successfully!', { id: toastId });
       setShareModalOpen(false);
       setShareEmail('');
     } catch (err: any) {
-      console.error(err);
+      console.error('Share via email error:', err);
       toast.error(err.message || 'Failed to send email', { id: toastId });
     }
   };
