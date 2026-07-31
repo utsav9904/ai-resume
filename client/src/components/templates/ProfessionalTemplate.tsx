@@ -1,5 +1,6 @@
 import type { ResumeState } from '../../store/useResumeStore';
 import React from 'react';
+import { getPageCardDimensions } from '../../utils/pageSizeUtils';
 
 interface TemplateProps {
   data: ResumeState;
@@ -329,17 +330,25 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
     );
   };
 
+  const pageDim = getPageCardDimensions(customization.pageSize, customization.customPageSize);
+
   return (
     <div id="resume-preview" className="w-full space-y-8">
       {pageChunks.map((chunk, pageIndex) => (
         <div
           key={pageIndex}
-          className={`w-full min-h-[1050px] bg-white shadow-2xl rounded-sm border border-gray-200 relative flex overflow-hidden ${pageIndex > 0 ? 'page-break-before' : ''}`}
-          style={fontStyle}
+          className={`w-full bg-white shadow-2xl rounded-sm border border-gray-200 relative flex overflow-hidden transition-all duration-300 ${pageIndex > 0 ? 'page-break-before' : ''}`}
+          style={{
+            ...fontStyle,
+            minHeight: pageDim.minHeight,
+            aspectRatio: pageDim.aspectRatio,
+          }}
         >
           {/* Page Badge indicator */}
-          <div className="absolute top-3 right-4 z-20 px-2.5 py-1 bg-gray-900 text-white rounded text-[10px] font-bold uppercase tracking-wider select-none print:hidden shadow-md">
-            📄 Page {pageIndex + 1} of {pageChunks.length}
+          <div className="absolute top-3 right-4 z-20 px-2.5 py-1 bg-gray-900 text-white rounded text-[10px] font-bold uppercase tracking-wider select-none print:hidden shadow-md flex items-center gap-1.5">
+            <span>📄 Page {pageIndex + 1} of {pageChunks.length}</span>
+            <span className="opacity-40">•</span>
+            <span className="font-mono text-gray-300">{pageDim.label}</span>
           </div>
 
           {customization.layout === '1-column' ? (

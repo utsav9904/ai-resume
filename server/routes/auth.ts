@@ -98,6 +98,65 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// @route POST /api/auth/firebase-login
+router.post('/firebase-login', async (req, res) => {
+  try {
+    const { uid, email, name, phoneNumber } = req.body;
+
+    if (!uid) {
+      return res.status(400).json({ message: 'Firebase UID is required' });
+    }
+
+    const userEmail = email || `${uid.substring(0, 8)}@phone.user`;
+    const userName = name || phoneNumber || 'User';
+
+    if (!isDbConnected()) {
+      let memUser = memDb.findUserByEmail(userEmail);
+      if (!memUser) {
+        memUser = memDb.createUser({ name: userName, email: userEmail, plan: 'free' });
+        memUser.firebaseUid = uid;
+        if (phoneNumber) memUser.phoneNumber = phoneNumber;
+      }
+
+      const payload = { user: { id: memUser.id } };
+      const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
+
+      return res.json({
+        token,
+        user: { id: memUser.id, name: memUser.name, email: memUser.email, plan: memUser.plan, phoneNumber: memUser.phoneNumber }
+      });
+    }
+
+    let user = await User.findOne({ $or: [{ email: userEmail }, { firebaseUid: uid }] });
+    if (!user) {
+      user = new User({
+        name: userName,
+        email: userEmail,
+        firebaseUid: uid,
+        phoneNumber: phoneNumber || undefined,
+        plan: 'free',
+      });
+      await user.save();
+    } else {
+      if (!user.firebaseUid) {
+        user.firebaseUid = uid;
+        await user.save();
+      }
+    }
+
+    const payload = { user: { id: user.id } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
+
+    res.json({
+      token,
+      user: { id: user.id, name: user.name, email: user.email, plan: user.plan, phoneNumber: user.phoneNumber }
+    });
+  } catch (err: any) {
+    console.error('Firebase Login Error:', err.message);
+    res.status(500).json({ message: 'Server error during social login' });
+  }
+});
+
 // @route GET /api/auth/profile
 router.get('/profile', async (req: any, res) => {
   try {
@@ -121,3 +180,4 @@ router.get('/profile', async (req: any, res) => {
 });
 
 export default router;
+

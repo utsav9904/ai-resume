@@ -6,6 +6,8 @@ export interface MemUser {
   email: string;
   password?: string;
   plan: 'free' | 'premium';
+  firebaseUid?: string;
+  phoneNumber?: string;
 }
 
 export interface MemResume {

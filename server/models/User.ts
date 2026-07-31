@@ -3,9 +3,11 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IUser extends Document {
   name: string;
   email: string;
-  password?: string; // Optional because of Google OAuth
+  password?: string; // Optional because of Google/Firebase OAuth
   plan: 'free' | 'premium';
   googleId?: string;
+  firebaseUid?: string;
+  phoneNumber?: string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -15,8 +17,11 @@ const UserSchema: Schema = new Schema(
     password: { type: String },
     plan: { type: String, enum: ['free', 'premium'], default: 'free' },
     googleId: { type: String },
+    firebaseUid: { type: String },
+    phoneNumber: { type: String },
   },
   { timestamps: true }
 );
 
 export default mongoose.model<IUser>('User', UserSchema);
+

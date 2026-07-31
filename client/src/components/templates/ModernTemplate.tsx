@@ -1,5 +1,6 @@
 import type { ResumeState } from '../../store/useResumeStore';
 import React from 'react';
+import { getPageCardDimensions } from '../../utils/pageSizeUtils';
 
 interface TemplateProps {
   data: ResumeState;
@@ -304,20 +305,26 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   const mainList = customization.mainSections || ['summary', 'experience', 'education', 'projects'];
   const colRatio = customization.columnRatio || '1/3-2/3';
 
-  // Group sections into page chunks based on pageBreaks
   const pageChunks = groupSectionsIntoPages(orderList, pageBreaks);
+  const pageDim = getPageCardDimensions(customization.pageSize, customization.customPageSize);
 
   return (
     <div id="resume-preview" className="w-full space-y-8">
       {pageChunks.map((chunk, pageIndex) => (
         <div
           key={pageIndex}
-          className={`w-full min-h-[1050px] bg-white shadow-2xl rounded-sm p-8 border border-gray-200 relative ${pageIndex > 0 ? 'page-break-before' : ''}`}
-          style={fontStyle}
+          className={`w-full bg-white shadow-2xl rounded-sm p-8 border border-gray-200 relative transition-all duration-300 ${pageIndex > 0 ? 'page-break-before' : ''}`}
+          style={{
+            ...fontStyle,
+            minHeight: pageDim.minHeight,
+            aspectRatio: pageDim.aspectRatio,
+          }}
         >
           {/* Page Badge indicator */}
-          <div className="absolute top-3 right-4 px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-700 rounded text-[10px] font-bold uppercase tracking-wider select-none print:hidden shadow-xs">
-            📄 Page {pageIndex + 1} of {pageChunks.length}
+          <div className="absolute top-3 right-4 px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-700 rounded text-[10px] font-bold uppercase tracking-wider select-none print:hidden shadow-xs flex items-center gap-1.5">
+            <span>📄 Page {pageIndex + 1} of {pageChunks.length}</span>
+            <span className="opacity-40">•</span>
+            <span className="font-mono text-teal-900">{pageDim.label}</span>
           </div>
 
           {/* Header on Page 1 */}

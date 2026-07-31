@@ -1,0 +1,142 @@
+================================================================================
+                     RESUMEAI - WEBSITE DEVELOPMENT TIMELINE REPORT             
+================================================================================
+
+PROJECT INFORMATION:
+--------------------
+Project Name    : ResumeAI (Full-Stack AI-Powered Resume Builder)
+Live Website    : https://ai-resume-three-ecru.vercel.app/
+Repository      : utsav9904/ai-resume
+Report Date     : July 25, 2026
+Tech Stack      : React 18 (Vite), TypeScript, Tailwind CSS, Zustand, 
+                  Node.js / Express, MongoDB & Mongoose, OpenAI API, 
+                  jsPDF & html2canvas-pro, docx
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+ResumeAI is a modern web application designed to help job seekers generate ATS-optimized, 
+professionally formatted resumes in minutes using artificial intelligence.
+
+Since its initial commit on June 19, 2026, the application has evolved through 6 major 
+development phases—transitioning from a minimal viable product (MVP) to a feature-packed 
+resume builder featuring AI content generation, job tailoring, customizable FlowCV-style 
+layouts, multi-page card previews, flexible page sizes (A4, Letter, Legal, Executive, Custom), 
+and dual-format export capability (PDF & DOCX).
+
+================================================================================
+2. MILESTONE & DEVELOPMENT PHASES TIMELINE
+================================================================================
+
+[PHASE 1] MVP FOUNDATION & DEPLOYMENT INFRASTRUCTURE
+--------------------------------------------------------------------------------
+Timeline: June 19, 2026 (18:14 - 19:02 IST)
+
+* 2026-06-19 18:14 IST [ab16a8c] Initial commit: Created ResumeAI Builder MVP core.
+* 2026-06-19 18:27 IST [fe57a3d] Configured Render deployment scripts for backend server.
+* 2026-06-19 18:40 IST [f7196bf] Fixed production build pipeline and MongoDB environment variables.
+* 2026-06-19 18:58 IST [31a54bf] Integrated backend REST API, AuthContext, and MongoDB persistence.
+* 2026-06-19 18:59 IST [40c5baf] Resolved Vercel SPA routing 404 issues via rewrite configuration.
+* 2026-06-19 19:02 IST [977b7ec] Added step-by-step Next/Previous wizard navigation buttons in builder.
+
+[PHASE 2] AI INTEGRATION, USER DASHBOARD & STORE HARDENING
+--------------------------------------------------------------------------------
+Timeline: June 20, 2026 (15:27 - 16:22 IST)
+
+* 2026-06-20 15:27 IST [3774d86] Introduced OpenAI-driven bullet polishers, summary generators, 
+                                 template selector, and section drag-and-drop reordering.
+* 2026-06-20 16:04 IST [7d9db1d] Implemented landing page, Projects/Certifications tabs, mobile 
+                                 sidebar navigation, real-time auto-save, Job Tailoring UI, 
+                                 and dashboard thumbnail previews.
+* 2026-06-20 16:15 IST [5503b2c] Replaced hard window location navigation with React Router Link 
+                                 for "Back to Dashboard" to eliminate session drops.
+* 2026-06-20 16:19 IST [390ae17] Hardened AuthContext to trust valid local JWTs during transient 
+                                 backend connectivity drops.
+* 2026-06-20 16:22 IST [342c7dd] Added automatic Zustand store reset on auth state change to prevent 
+                                 data leakage across user sessions.
+
+[PHASE 3] SEO ENHANCEMENT, CONTENT BLOG & DOCUMENTATION
+--------------------------------------------------------------------------------
+Timeline: June 20, 2026 (16:26 - 16:40 IST)
+
+* 2026-06-20 16:26 IST [b429b7b] Added metadata, OpenGraph & Twitter cards, JSON-LD structured data, 
+                                 sitemap.xml, robots.txt, and custom Inter typography.
+* 2026-06-20 16:35 IST [75781f8] Integrated SEO-optimized Blog section into navigation and footer.
+* 2026-06-20 16:37 IST [0c39377] Added quick "Back to Home" navigation links on authentication screens.
+* 2026-06-20 16:40 IST [2fa80b1] Authored comprehensive project README.md with setup guide & architecture.
+
+[PHASE 4] SECURITY POLISHING & VISUAL ASSETS
+--------------------------------------------------------------------------------
+Timeline: June 22, 2026 (13:25 - 14:01 IST)
+
+* 2026-06-22 13:25 IST [8cf7a8a] Enforced strict user ownership validation across all backend resume endpoints.
+* 2026-06-22 14:01 IST [455d4a3] Added premium AI-generated abstract background visuals to hero section.
+
+[PHASE 5] STYLING CUSTOMIZATION, COLOR REFACTOR & PAGE BREAKS
+--------------------------------------------------------------------------------
+Timeline: July 13, 2026 (15:08 - 16:24 IST)
+
+* 2026-07-13 15:08 IST [8aceb09] Implemented FlowCV-style granular customization (margins, fonts, spacing).
+* 2026-07-13 15:23 IST [5d4b3ae] Upgraded PDF export engine to html2canvas-pro to support modern OKLCH colors.
+* 2026-07-13 16:03 IST [1febdab] Created dynamic Blog detail pages with category and tag filtering.
+* 2026-07-13 16:24 IST [1af0467] Added interactive visual page break toggles within the resume builder canvas.
+
+[PHASE 6] ADVANCED EXPORT ENGINE, MULTI-PAGE SHEETS & ROADMAP
+--------------------------------------------------------------------------------
+Timeline: July 25, 2026 (12:43 - 13:36 IST)
+
+* 2026-07-25 12:43 IST [f0c0722] Updated README with verified production URLs.
+* 2026-07-25 12:48 IST [4fcdad9] Published Future Features AI Roadmap page and navbar navigation.
+* 2026-07-25 13:30 IST [1d3cd9a] Integrated native DOCX document export engine, multi-page A4 card 
+                                 sheets preview, unified export dropdown, and backend DB fallback.
+* 2026-07-25 13:36 IST [cd4d23c] Implemented Page Size Selector (A4, Letter, Legal, Executive, Custom mm) 
+                                 with matching dimension calculations for PDF & DOCX exports.
+
+================================================================================
+3. COMPLETE CHRONOLOGICAL COMMITS LOG
+================================================================================
+
+Commit Hash | ISO Date & Time           | Author | Message
+------------+---------------------------+--------+----------------------------------------------------------------------
+ab16a8c     | 2026-06-19 18:14:35 +0530 | num    | Initial commit: ResumeAI Builder MVP
+fe57a3d     | 2026-06-19 18:27:27 +0530 | num    | chore: add start script for Render deployment
+f7196bf     | 2026-06-19 18:40:54 +0530 | num    | fix: production build step and DB env variable
+31a54bf     | 2026-06-19 18:58:24 +0530 | num    | feat: integrate API, AuthContext, and MongoDB
+40c5baf     | 2026-06-19 18:59:35 +0530 | num    | fix: vercel SPA routing 404
+977b7ec     | 2026-06-19 19:02:28 +0530 | num    | feat: add next and previous navigation buttons
+3774d86     | 2026-06-20 15:27:41 +0530 | num    | feat: Add new AI features, templates, drag-and-drop, and UI improvements
+7d9db1d     | 2026-06-20 16:04:03 +0530 | num    | feat: Landing page, Projects/Certs tabs, mobile sidebar, auto-save, job tailor UI, dashboard improvements, store reset bug fix
+5503b2c     | 2026-06-20 16:15:10 +0530 | num    | fix: use React Router Link for Back to Dashboard to prevent logout on navigation
+390ae17     | 2026-06-20 16:19:01 +0530 | num    | fix: harden AuthContext - trust valid JWT even when backend unreachable, preventing accidental logout
+342c7dd     | 2026-06-20 16:22:47 +0530 | num    | fix: clear resume store on login/logout to prevent user data leaking between sessions
+b429b7b     | 2026-06-20 16:26:20 +0530 | num    | seo: add meta tags, OG/Twitter cards, JSON-LD structured data, sitemap.xml, robots.txt, Inter font
+75781f8     | 2026-06-20 16:35:05 +0530 | num    | feat: add SEO blog page and link it in nav and footer
+0c39377     | 2026-06-20 16:37:59 +0530 | num    | feat: add back to home link on login and register pages
+2fa80b1     | 2026-06-20 16:40:10 +0530 | num    | docs: create comprehensive README.md with features, tech stack, and setup instructions
+8cf7a8a     | 2026-06-22 13:25:19 +0530 | num    | fix: enforce strict user validation on all resume API endpoints
+455d4a3     | 2026-06-22 14:01:14 +0530 | num    | feat: add premium AI-generated abstract background image to landing page hero section
+8aceb09     | 2026-07-13 15:08:02 +0530 | num    | feat: add premium FlowCV-like layout and styling customization
+5d4b3ae     | 2026-07-13 15:23:00 +0530 | num    | fix: replace html2canvas with html2canvas-pro to support oklch colors in PDF generation
+1febdab     | 2026-07-13 16:03:48 +0530 | num    | Fix blog detail route, enable category filtering, and add blog detail page
+1af0467     | 2026-07-13 16:24:20 +0530 | num    | feat: add toggle functionality for page breaks in resume builder
+f0c0722     | 2026-07-25 12:43:50 +0530 | num    | Update README with live home page link
+4fcdad9     | 2026-07-25 12:48:35 +0530 | num    | Add future features roadmap page, navbar roadmap link, and README roadmap section
+1d3cd9a     | 2026-07-25 13:30:50 +0530 | num    | Add DOCX export, multi-page A4 card sheets preview, export dropdown, and backend DB fallback
+cd4d23c     | 2026-07-25 13:36:03 +0530 | num    | Add Page Size selector (A4, Letter, Legal, Executive, Custom mm) and PDF dimension exporter
+
+================================================================================
+4. KEY METRICS & FEATURE BREAKDOWN
+================================================================================
+- Total Commits        : 25 commits across 4 active development dates
+- Primary Languages    : TypeScript, TSX, HTML, CSS
+- State Management     : Zustand (`useResumeStore.ts`)
+- Key Export Formats   : PDF (jsPDF + html2canvas-pro), DOCX (`docx` library)
+- Page Sizes Supported : A4 (210x297mm), US Letter (215.9x279.4mm), 
+                         US Legal (215.9x355.6mm), Executive (184.15x266.7mm), 
+                         Custom dimensions in millimeters
+- Security Highlights  : Strict owner checks on MongoDB REST endpoints, JWT validation, 
+                         Zustand store session wipes on auth transition.
+
+================================================================================
+END OF REPORT
+================================================================================
