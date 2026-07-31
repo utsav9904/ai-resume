@@ -65,11 +65,15 @@ const Login = () => {
     if (err.code === 'auth/unauthorized-domain') {
       return 'Domain not authorized! Please add "ai-resume-three-ecru.vercel.app" (and localhost) under Firebase Console > Authentication > Settings > Authorized Domains.';
     }
+    if (err.code === 'auth/operation-not-allowed' || (err.message && err.message.includes('SMS unable to be sent'))) {
+      return 'SMS OTP region disabled in Firebase! Enable your country under Firebase Console > Authentication > Settings > SMS Region Policy (or enable Phone Provider).';
+    }
     if (err.code === 'auth/popup-blocked') {
       return 'Pop-up was blocked by your browser. Please allow popups or click below to continue.';
     }
     return err.message || 'Social sign-in failed';
   };
+
 
   const handleGoogleLogin = async () => {
     setError('');
