@@ -11,12 +11,14 @@ import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
-import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
+import { generatePDF, generatePDFBlob, printVectorPDF } from '../../utils/pdfExport';
 import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { toast } from 'react-hot-toast';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage, auth } from '../../config/firebase';
 
 const sectionLabels: { [key: string]: string } = {
   summary: 'Professional Summary',
@@ -132,6 +134,55 @@ const Builder = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
+
+  const handleShareEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shareEmail) return;
+    
+    const toastId = toast.loading('Generating PDF and preparing email...');
+    try {
+      const blob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
+      if (!blob) throw new Error('Failed to generate PDF');
+
+      const uid = auth.currentUser?.uid || 'guest';
+      const fileRef = ref(storage, `resumes/${uid}/shared_${Date.now()}.pdf`);
+      await uploadBytes(fileRef, blob);
+      const downloadUrl = await getDownloadURL(fileRef);
+
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
+
+      const data = {
+        service_id: 'service_lf4pzre',
+        template_id: templateId,
+        user_id: 'u01NJS_ZbqnoN7kVS',
+        template_params: {
+          user_name: personalInfo.fullName || 'User',
+          to_email: shareEmail,
+          download_link: downloadUrl
+        }
+      };
+
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      toast.success('Email sent successfully!', { id: toastId });
+      setShareModalOpen(false);
+      setShareEmail('');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to send email', { id: toastId });
+    }
+  };
 
   // Reset store on new resume, load on existing
   useEffect(() => {
@@ -1289,9 +1340,7 @@ const Builder = () => {
                   <button
                     onClick={() => {
                       setExportMenuOpen(false);
-                      const subject = encodeURIComponent(`Resume - ${personalInfo.fullName || 'User'}`);
-                      const body = encodeURIComponent(`Please find my resume attached.\n\n(Note: Please attach the downloaded PDF to this email)`);
-                      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                      setShareModalOpen(true);
                     }}
                     className="w-full text-left px-3 py-2 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2 transition"
                   >
@@ -1346,6 +1395,53 @@ const Builder = () => {
           {template === 'professional' && <ProfessionalTemplate data={store} />}
         </div>
       </section>
+
+      {/* Share via Email Modal */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Mail className="text-teal-600" size={20} /> Share Resume
+              </h3>
+              <button onClick={() => setShareModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Enter an email address to share this resume. We will generate a secure link and send it directly via EmailJS.
+            </p>
+            <form onSubmit={handleShareEmail}>
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Recipient Email</label>
+                <input
+                  type="email"
+                  required
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-sm"
+                  placeholder="recruiter@company.com"
+                />
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition shadow-sm flex items-center gap-2"
+                >
+                  <Mail size={16} /> Send Email
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -25,16 +25,15 @@ const getDimensions = (pageSize: string, customSize?: CustomSize): { widthMm: nu
   }
 };
 
-export const generatePDF = async (
+export const generatePDFBlob = async (
   elementId: string,
-  filename: string = 'resume.pdf',
   pageSize: string = 'a4',
   customSize?: CustomSize
-) => {
+): Promise<Blob | null> => {
   const element = document.getElementById(elementId);
   if (!element) {
     console.error('Element not found:', elementId);
-    return;
+    return null;
   }
 
   const dim = getDimensions(pageSize, customSize);
@@ -126,10 +125,30 @@ export const generatePDF = async (
       pageCount++;
     }
 
-    pdf.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`);
+    return pdf.output('blob');
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating PDF Blob:', error);
+    return null;
   }
+};
+
+export const generatePDF = async (
+  elementId: string,
+  filename: string = 'resume.pdf',
+  pageSize: string = 'a4',
+  customSize?: CustomSize
+) => {
+  const blob = await generatePDFBlob(elementId, pageSize, customSize);
+  if (!blob) return;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 export const printVectorPDF = () => {
