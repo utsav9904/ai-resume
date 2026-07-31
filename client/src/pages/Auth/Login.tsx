@@ -99,6 +99,9 @@ const Login = () => {
     if (err.code === 'auth/unauthorized-domain') {
       return 'Domain not authorized! Please add "ai-resume-three-ecru.vercel.app" (and localhost) under Firebase Console > Authentication > Settings > Authorized Domains.';
     }
+    if (err.code === 'auth/billing-not-enabled' || (err.message && err.message.includes('billing-not-enabled'))) {
+      return 'SMS OTP requires test phone numbers (free) or Blaze plan. Add test phone numbers in Firebase Console > Authentication > Phone, or sign in with Google!';
+    }
     if (err.code === 'auth/operation-not-allowed' || (err.message && err.message.includes('SMS unable to be sent'))) {
       return 'SMS OTP region disabled in Firebase! Enable your country under Firebase Console > Authentication > Settings > SMS Region Policy (or enable Phone Provider).';
     }
