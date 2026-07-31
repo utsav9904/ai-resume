@@ -5,7 +5,9 @@ import api from '../../services/api';
 import { ArrowLeft, Phone, Mail, ShieldCheck } from 'lucide-react';
 import {
   signInWithGooglePopup,
+  signInWithFacebookPopup,
   signInWithGoogleRedirect,
+  signInWithFacebookRedirect,
   checkRedirectResult,
   setupRecaptcha,
   sendPhoneOtp
