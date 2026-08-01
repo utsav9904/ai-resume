@@ -47,6 +47,8 @@ router.post('/', authMiddleware, async (req: any, res) => {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+});
+
 // @route GET /api/resumes/public/:id (Unprotected public route for sharing & PDF downloads)
 router.get('/public/:id', async (req: any, res) => {
   try {
