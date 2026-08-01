@@ -47,6 +47,22 @@ router.post('/', authMiddleware, async (req: any, res) => {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+// @route GET /api/resumes/public/:id (Unprotected public route for sharing & PDF downloads)
+router.get('/public/:id', async (req: any, res) => {
+  try {
+    if (!isDbConnected()) {
+      const resume = memDb.getResumeById(req.params.id);
+      if (!resume) return res.status(404).json({ message: 'Resume not found' });
+      return res.json(resume);
+    }
+
+    const resume = await Resume.findById(req.params.id);
+    if (!resume) return res.status(404).json({ message: 'Resume not found' });
+    res.json(resume);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 // @route GET /api/resumes/:id

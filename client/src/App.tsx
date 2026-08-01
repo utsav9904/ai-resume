@@ -7,6 +7,7 @@ import Landing from './pages/Landing/Landing';
 import Blog from './pages/Blog/Blog';
 import BlogDetail from './pages/Blog/BlogDetail';
 import FutureFeatures from './pages/FutureFeatures/FutureFeatures';
+import ShareView from './pages/Share/ShareView';
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
@@ -68,6 +69,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/future-features" element={<FutureFeatures />} />
+          <Route path="/share/:id" element={<ShareView />} />
 
           {/* Protected */}
           <Route path="/dashboard" element={

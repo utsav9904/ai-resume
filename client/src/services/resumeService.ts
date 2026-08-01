@@ -78,6 +78,27 @@ export const resumeService = {
     return null;
   },
 
+  // Get public resume by ID without auth header
+  async getPublicResumeById(resumeId: string): Promise<ResumeData | null> {
+    const localData = localStorage.getItem(`resume_${resumeId}`);
+    if (localData) {
+      try {
+        return JSON.parse(localData);
+      } catch (e) {}
+    }
+
+    try {
+      const res = await api.get(`/api/resumes/public/${resumeId}`);
+      if (res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn('Public API resume load failed:', err);
+    }
+
+    return null;
+  },
+
   // Save or Update a resume in MongoDB
   async saveResume(resumeId: string | undefined, payload: Partial<ResumeData>): Promise<string> {
     const localId = resumeId || `local_${Date.now()}`;

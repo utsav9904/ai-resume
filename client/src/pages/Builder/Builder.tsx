@@ -144,28 +144,37 @@ const Builder = () => {
     e.preventDefault();
     if (!shareEmail) return;
 
-    const toastId = toast.loading('Generating PDF & preparing email...');
+    const toastId = toast.loading('Saving resume & preparing email...');
     try {
+      // 1. Ensure current resume state is saved
+      const resumePayload = {
+        title: title || `${personalInfo.fullName || 'Untitled'}'s Resume`,
+        personalInfo, summary, experience, education, skills, projects, certifications,
+        template, templateColor, customization,
+      };
+      const savedId = await resumeService.saveResume(id, resumePayload);
+
       const serviceId = 'service_lf4pzre';
       const templateId = 'template_x38j328';
       const publicKey = 'u01NJS_ZbqnoN7kVS';
 
-      let pdfDownloadUrl = window.location.href;
+      // 2. Direct public download URL that triggers real PDF download
+      let pdfDownloadUrl = `${window.location.origin}/share/${savedId}?download=true`;
 
-      // 1. Generate real PDF blob from live preview
+      // 3. Try uploading to Firebase Storage if available
       const pdfBlob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
-
       if (pdfBlob) {
         try {
-          // 2. Upload to Firebase Storage so email recipient receives direct PDF download file
           const sanitizedName = (personalInfo.fullName || 'Resume').replace(/[^a-zA-Z0-9]/g, '_');
           const fileName = `shared_resumes/${Date.now()}_${sanitizedName}.pdf`;
           const storageRef = ref(storage, fileName);
           await uploadBytes(storageRef, pdfBlob, { contentType: 'application/pdf' });
-          pdfDownloadUrl = await getDownloadURL(storageRef);
-          console.log('📄 Direct PDF file URL uploaded to cloud storage:', pdfDownloadUrl);
+          const storageUrl = await getDownloadURL(storageRef);
+          if (storageUrl) {
+            pdfDownloadUrl = storageUrl;
+          }
         } catch (uploadErr) {
-          console.warn('⚠️ Cloud storage upload failed, falling back to website URL:', uploadErr);
+          console.warn('⚠️ Firebase storage upload skipped, using direct public download link:', uploadErr);
         }
       }
 
