@@ -2,29 +2,28 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/server.ts",
+      "src": "api/index.ts",
       "use": "@vercel/node"
     },
     {
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "buildCommand": "npm run build -- --skipLibCheck || npx vite build"
+        "distDir": "dist"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/server.ts"
+      "dest": "api/index.ts"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "client/$1"
+      "dest": "client/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_URL": ""
-  }
+  ]
 }
