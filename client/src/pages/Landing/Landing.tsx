@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, FileText, Download, Zap, Shield, Palette, ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { Sparkles, FileText, Download, Zap, Shield, Palette, ArrowRight, CheckCircle, Star, Menu, X } from 'lucide-react';
 
 const Landing = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const features = [
     { icon: <Sparkles size={24} />, title: 'AI-Powered Writing', desc: 'Generate professional summaries, improve bullet points, and get skill suggestions powered by OpenAI.' },
     { icon: <Palette size={24} />, title: '3 Premium Templates', desc: 'Choose from Modern, Minimalist, or Professional templates. Customize accent colors to match your style.' },
@@ -34,53 +37,97 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 sm:px-8 py-3.5 flex justify-between items-center">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center shadow-xs">
             <Sparkles size={16} className="text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">ResumeAI</span>
-        </div>
-        <div className="flex items-center gap-4">
+          <span className="text-xl font-bold text-gray-900 tracking-tight">ResumeAI</span>
+        </Link>
+
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-6">
           <Link to="/blog" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Blog</Link>
           <Link to="/future-features" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Roadmap</Link>
           <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Log in</Link>
-          <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition shadow-sm">
+          <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition shadow-xs">
             Get Started Free
           </Link>
         </div>
+
+        {/* Mobile Hamburger Toggle */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2 text-gray-600 hover:text-teal-600 transition focus:outline-none"
+          aria-label="Toggle Navigation Menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </nav>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden pt-16 bg-white flex flex-col p-6 space-y-4 border-b border-gray-200 shadow-xl animate-in slide-in-from-top duration-200">
+          <Link
+            to="/blog"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-lg font-medium text-gray-700 hover:text-teal-600 py-2 border-b border-gray-100"
+          >
+            Blog
+          </Link>
+          <Link
+            to="/future-features"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-lg font-medium text-gray-700 hover:text-teal-600 py-2 border-b border-gray-100"
+          >
+            Roadmap
+          </Link>
+          <Link
+            to="/login"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-lg font-medium text-gray-700 hover:text-teal-600 py-2 border-b border-gray-100"
+          >
+            Log in
+          </Link>
+          <Link
+            to="/register"
+            onClick={() => setMobileMenuOpen(false)}
+            className="w-full text-center bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition shadow-md mt-4"
+          >
+            Get Started Free
+          </Link>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section 
-        className="pt-32 pb-20 px-6 text-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
+        className="pt-28 sm:pt-36 pb-16 sm:pb-20 px-4 sm:px-6 text-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/landing_bg.png')" }}
       >
-
         <div className="relative max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-6">
             <Sparkles size={14} /> AI-Powered Resume Builder
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 leading-tight mb-6">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
             Build Resumes That<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700">
               Get You Hired
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2">
             Create ATS-optimized resumes with AI assistance. Generate professional summaries, tailor your resume to any job, and download as PDF in minutes.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition shadow-xl shadow-teal-600/25">
+          <div className="flex flex-col sm:flex-row gap-3.5 justify-center max-w-md sm:max-w-none mx-auto">
+            <Link to="/register" className="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-base sm:text-lg transition shadow-xl shadow-teal-600/25">
               Start Building for Free <ArrowRight size={20} />
             </Link>
-            <Link to="/login" className="inline-flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-teal-300 hover:text-teal-700 px-8 py-4 rounded-2xl font-bold text-lg transition">
+            <Link to="/login" className="inline-flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-teal-300 hover:text-teal-700 px-8 py-4 rounded-2xl font-bold text-base sm:text-lg transition bg-white/80">
               Sign In
             </Link>
           </div>
-          <p className="mt-5 text-sm text-gray-400">No credit card required · Free forever</p>
+          <p className="mt-5 text-xs sm:text-sm text-gray-400">No credit card required · Free forever</p>
         </div>
 
         {/* Hero visual */}

@@ -11,14 +11,12 @@ import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
-import { generatePDF, generatePDFBlob, printVectorPDF } from '../../utils/pdfExport';
+import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
 import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { toast } from 'react-hot-toast';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage, auth } from '../../config/firebase';
 import { resumeService } from '../../services/resumeService';
 
 const sectionLabels: { [key: string]: string } = {
@@ -79,6 +77,7 @@ const Builder = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [mobileViewMode, setMobileViewMode] = useState<'edit' | 'preview'>('edit');
   const autoSaveTimer = useRef<any>(null);
 
   const store = useResumeStore();
@@ -446,7 +445,33 @@ const Builder = () => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-60px)] overflow-hidden relative">
+      {/* Mobile View Switcher Bar (Visible on mobile & tablet < lg) */}
+      <div className="lg:hidden bg-white border-b border-gray-200 p-2 flex items-center gap-2 z-30 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setMobileViewMode('edit')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+            mobileViewMode === 'edit'
+              ? 'bg-teal-600 text-white shadow-xs'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Edit2 size={14} /> Edit Form
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileViewMode('preview')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+            mobileViewMode === 'preview'
+              ? 'bg-teal-600 text-white shadow-xs'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <FileText size={14} /> Live Resume Preview
+        </button>
+      </div>
+
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSidebarOpen(false)}>
@@ -467,13 +492,16 @@ const Builder = () => {
       </aside>
 
       {/* Form Area */}
-      <section className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
+      <section className={`flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8 ${mobileViewMode === 'preview' ? 'hidden lg:block' : 'block'}`}>
         {/* Mobile hamburger */}
-        <div className="flex md:hidden items-center gap-3 mb-4">
-          <button onClick={() => setMobileSidebarOpen(true)} className="p-2 rounded-lg border border-gray-200 bg-white">
-            <Menu size={20} />
-          </button>
-          <span className="font-semibold text-gray-700">{tabs.find(t => t.id === activeTab)?.label}</span>
+        <div className="flex md:hidden items-center justify-between gap-3 mb-4 bg-white p-2.5 rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setMobileSidebarOpen(true)} className="p-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700">
+              <Menu size={18} />
+            </button>
+            <span className="font-semibold text-gray-800 text-sm">{tabs.find(t => t.id === activeTab)?.label}</span>
+          </div>
+          <span className="text-xs text-teal-600 font-bold bg-teal-50 px-2.5 py-1 rounded-full">{completion}% Done</span>
         </div>
 
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
@@ -1299,24 +1327,24 @@ const Builder = () => {
       </section>
 
       {/* Live Preview Area */}
-      <section className="w-[45%] bg-gray-200 p-6 overflow-y-auto hidden lg:block border-l border-gray-300 flex-shrink-0">
+      <section className={`w-full lg:w-[45%] bg-gray-200 p-4 sm:p-6 overflow-y-auto ${mobileViewMode === 'edit' ? 'hidden lg:block' : 'block'} border-l border-gray-300 flex-shrink-0`}>
         <div className="flex justify-between items-center mb-4 gap-3">
           {/* Auto-save indicator */}
           <div className="flex items-center gap-1.5 text-xs">
-            {saveStatus === 'saving' && <><div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-600">Saving...</span></>}
-            {saveStatus === 'saved' && <><div className="w-2 h-2 rounded-full bg-green-400" /><span className="text-green-600">All saved</span></>}
-            {saveStatus === 'unsaved' && <><div className="w-2 h-2 rounded-full bg-red-400" /><span className="text-red-500">Unsaved changes</span></>}
+            {saveStatus === 'saving' && <><div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-600 font-medium">Saving...</span></>}
+            {saveStatus === 'saved' && <><div className="w-2 h-2 rounded-full bg-green-400" /><span className="text-green-600 font-medium">All saved</span></>}
+            {saveStatus === 'unsaved' && <><div className="w-2 h-2 rounded-full bg-red-400" /><span className="text-red-500 font-medium">Unsaved</span></>}
           </div>
           <div className="flex gap-2 relative">
-            <button onClick={() => doSave(false)} disabled={isSaving || saveStatus === 'saved'} className="bg-teal-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium hover:bg-teal-700 transition disabled:opacity-50">
+            <button onClick={() => doSave(false)} disabled={isSaving || saveStatus === 'saved'} className="bg-teal-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium hover:bg-teal-700 transition disabled:opacity-50 shadow-2xs">
               <Save size={14} /> {isSaving ? 'Saving...' : 'Save'}
             </button>
             <div className="relative">
               <button
                 onClick={() => setExportMenuOpen(!exportMenuOpen)}
-                className="bg-gray-900 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold hover:bg-gray-800 transition shadow-sm"
+                className="bg-gray-900 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold hover:bg-gray-800 transition shadow-2xs"
               >
-                <Download size={14} /> Export & Download <ChevronDown size={14} />
+                <Download size={14} /> <span className="hidden sm:inline">Export & </span>Download <ChevronDown size={14} />
               </button>
               {exportMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2 text-xs text-gray-700">
@@ -1369,10 +1397,10 @@ const Builder = () => {
         </div>
 
         {/* Template Customizer */}
-        <div className="flex gap-3 mb-4 bg-white p-3 rounded-xl shadow-sm items-center">
+        <div className="flex gap-3 mb-4 bg-white p-3 rounded-xl shadow-xs items-center border border-gray-100">
           <div className="flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Template</label>
-            <select value={template} onChange={e => setResume({ template: e.target.value })} className="w-full text-sm border border-gray-200 rounded-lg p-1.5 outline-none bg-gray-50 focus:ring-1 focus:ring-teal-400">
+            <select value={template} onChange={e => setResume({ template: e.target.value })} className="w-full text-xs sm:text-sm border border-gray-200 rounded-lg p-1.5 outline-none bg-gray-50 focus:ring-1 focus:ring-teal-400">
               <option value="modern">Modern</option>
               <option value="minimalist">Minimalist</option>
               <option value="professional">Professional</option>
@@ -1384,8 +1412,8 @@ const Builder = () => {
           </div>
         </div>
 
-        {/* Multi-Page A4 Paper Sheets Container */}
-        <div className="w-full mx-auto text-sm pb-12">
+        {/* Multi-Page A4 Paper Sheets Container (Overflow-x auto for mobile) */}
+        <div className="w-full mx-auto text-sm pb-12 overflow-x-auto min-w-0">
           {template === 'modern' && <ModernTemplate data={store} />}
           {template === 'minimalist' && <MinimalistTemplate data={store} />}
           {template === 'professional' && <ProfessionalTemplate data={store} />}

@@ -22,22 +22,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-const AppShell = ({ showBack = false, children }: { showBack?: boolean; children: React.ReactNode }) => (
-  <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-    <header className="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
-      <Link to="/dashboard" className="text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
-        <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs">✦</span>
-        ResumeAI
-      </Link>
-      {showBack && (
-        <Link to="/dashboard" className="text-sm text-gray-500 hover:text-teal-600 transition font-medium">
-          ← Back to Dashboard
+const AppShell = ({ showBack = false, children }: { showBack?: boolean; children: React.ReactNode }) => {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <header className="bg-white shadow-xs py-3 px-4 sm:px-6 flex justify-between items-center border-b border-gray-100 z-30 relative">
+        <Link to="/dashboard" className="text-lg sm:text-xl font-bold text-teal-600 tracking-tight flex items-center gap-2">
+          <span className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center text-white text-xs font-semibold shadow-xs">✦</span>
+          ResumeAI
         </Link>
-      )}
-    </header>
-    <main className="flex-grow flex flex-col">{children}</main>
-  </div>
-);
+        <div className="flex items-center gap-3">
+          {showBack && (
+            <Link to="/dashboard" className="text-xs sm:text-sm text-gray-600 hover:text-teal-600 transition font-medium flex items-center gap-1">
+              ← <span className="hidden sm:inline">Back to</span> Dashboard
+            </Link>
+          )}
+          {user && (
+            <div className="hidden md:flex items-center gap-3 pl-3 border-l border-gray-200">
+              <span className="text-xs text-gray-500 font-medium">👋 {user.name}</span>
+              <button
+                onClick={logout}
+                className="text-xs text-gray-500 hover:text-red-500 font-medium transition"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+      <main className="flex-grow flex flex-col">{children}</main>
+    </div>
+  );
+};
 
 function App() {
   return (

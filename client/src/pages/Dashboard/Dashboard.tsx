@@ -105,26 +105,28 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto w-full p-6 md:p-8 flex-grow">
+    <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 sm:mb-10">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">My Resumes</h2>
-          <p className="text-gray-500 mt-1">Build and manage your AI-powered resumes</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">My Resumes</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Build and manage your AI-powered resumes</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-600 hidden sm:block">👋 Hi, {user?.name}</span>
-          <button onClick={logout} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 font-medium transition">
-            <LogOut size={16} /> Logout
-          </button>
-          <button onClick={createNewResume} className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-lg shadow-teal-600/20 text-sm">
-            <PlusCircle size={18} /> Create New
-          </button>
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+          <span className="text-xs sm:text-sm font-medium text-gray-600">👋 {user?.name}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={logout} className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-red-500 font-medium transition px-2 py-1.5 border border-gray-200 sm:border-none rounded-lg">
+              <LogOut size={15} /> Logout
+            </button>
+            <button onClick={createNewResume} className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-semibold transition shadow-md shadow-teal-600/20 text-xs sm:text-sm">
+              <PlusCircle size={17} /> Create New
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Resume Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         {resumes.length === 0 ? (
           <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -157,23 +159,23 @@ const Dashboard = () => {
                     <div className="h-1 rounded-full w-5/6 bg-gray-200" />
                   </div>
                   {/* Template badge */}
-                  <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-semibold capitalize text-white" style={{ backgroundColor: color }}>
+                  <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-semibold capitalize text-white shadow-xs" style={{ backgroundColor: color }}>
                     {resume.template || 'modern'}
                   </div>
-                  {/* Action buttons (hover) */}
-                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition">
+                  {/* Action buttons (Always accessible on mobile, hover effect on desktop) */}
+                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
                     <button
                       onClick={() => duplicateResume(resume)}
                       disabled={duplicating === resume._id}
                       title="Duplicate"
-                      className="p-1.5 bg-white rounded-lg shadow text-gray-500 hover:text-teal-600 hover:shadow-md transition disabled:opacity-50"
+                      className="p-1.5 bg-white rounded-lg shadow text-gray-600 hover:text-teal-600 hover:shadow-md transition disabled:opacity-50"
                     >
                       <Copy size={14} />
                     </button>
                     <button
                       onClick={() => deleteResume(resume._id)}
                       title="Delete"
-                      className="p-1.5 bg-white rounded-lg shadow text-gray-500 hover:text-red-500 hover:shadow-md transition"
+                      className="p-1.5 bg-white rounded-lg shadow text-gray-600 hover:text-red-500 hover:shadow-md transition"
                     >
                       <Trash2 size={14} />
                     </button>

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, Clock, User } from 'lucide-react';
+import { Sparkles, ArrowRight, Clock, User, Menu, X } from 'lucide-react';
 import { categories, categoryColors, posts } from './blogData';
 
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const filteredPosts = useMemo(() => {
     if (selectedCategory === 'All') return posts;
@@ -12,22 +13,41 @@ const Blog = () => {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col font-sans">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 sm:px-8 py-3.5 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center shadow-xs">
             <Sparkles size={16} className="text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">ResumeAI</span>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">ResumeAI</span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
+          <Link to="/" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition">Home</Link>
           <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Log in</Link>
-          <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition">
+          <Link to="/register" className="bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-700 transition shadow-xs">
             Get Started Free
           </Link>
         </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="sm:hidden p-2 text-gray-600 hover:text-teal-600 transition"
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 sm:hidden pt-16 bg-white flex flex-col p-6 space-y-4 border-b border-gray-200 shadow-xl animate-in slide-in-from-top duration-200">
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-teal-600 py-2 border-b border-gray-100">Home</Link>
+          <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-teal-600 py-2 border-b border-gray-100">Log in</Link>
+          <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="w-full text-center bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 transition shadow-md mt-4">
+            Get Started Free
+          </Link>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="pt-32 pb-12 px-6 text-center bg-gradient-to-b from-teal-50 to-white">
