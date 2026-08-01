@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { Link } from 'react-router-dom';
 import { Sparkles, Shield, Target, ArrowRight, Zap, Star, Mail } from 'lucide-react';
 
@@ -36,7 +37,12 @@ const features = [
 
 const FutureFeatures = () => {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      <SEOHead
+        title="AI Career Tools Roadmap — ResumeAI"
+        description="Discover upcoming AI career features, ATS reviewers, cover letter generators, and interview copilot tools coming to ResumeAI."
+        keywords="AI career tools, ATS checker, resume reviewer, AI interview prep, resume roadmap"
+      />
       <header className="bg-white border-b border-gray-200 py-6 px-6 shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>

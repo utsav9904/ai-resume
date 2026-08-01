@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Clock, User, Menu, X } from 'lucide-react';
@@ -13,7 +14,12 @@ const Blog = () => {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col font-sans transition-colors duration-200">
+      <SEOHead
+        title="Resume & Career Tips — ResumeAI Blog"
+        description="Expert career advice, ATS optimization strategies, and resume writing guides to help you land your dream job."
+        keywords="resume tips, ATS resume guide, cover letter tips, career advice, job search"
+      />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 sm:px-8 py-3.5 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">

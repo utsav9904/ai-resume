@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, FileText, Download, Zap, Shield, Palette, ArrowRight, CheckCircle, Star, Menu, X } from 'lucide-react';
+import SEOHead from '../../components/SEOHead';
 
 const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,7 +38,12 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200">
+      <SEOHead
+        title="ResumeAI — Free AI-Powered Resume Builder | Create ATS-Friendly Resumes"
+        description="Build professional, ATS-optimized resumes in minutes with AI. Get AI-generated summaries, cover letters, and skill suggestions. Choose from 3 premium templates. Free forever."
+        keywords="AI resume builder, free resume builder, ATS resume, professional resume, cover letter generator, resume templates, AI career tools, job application"
+      />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 sm:px-8 py-3.5 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">

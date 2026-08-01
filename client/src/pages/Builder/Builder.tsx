@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -527,20 +528,21 @@ const Builder = () => {
           <span className="text-xs text-teal-600 font-bold bg-teal-50 px-2.5 py-1 rounded-full">{completion}% Done</span>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <SEOHead title={`${title || 'Resume Builder'} — ResumeAI`} noIndex={true} />
+        <div className="max-w-2xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 md:p-8">
           {/* Editable Title */}
           <div className="flex items-center gap-2 mb-6">
             {isEditingTitle ? (
               <input
                 autoFocus
-                className="text-xl font-bold text-gray-800 border-b-2 border-teal-500 outline-none flex-1 bg-transparent"
+                className="text-xl font-bold text-gray-800 dark:text-gray-100 border-b-2 border-teal-500 outline-none flex-1 bg-transparent"
                 value={title}
                 onChange={e => updateTitle(e.target.value)}
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={e => e.key === 'Enter' && setIsEditingTitle(false)}
               />
             ) : (
-              <h2 className="text-xl font-bold text-gray-800 flex-1 truncate">{title || 'Untitled Resume'}</h2>
+              <div className="text-xl font-bold text-gray-800 dark:text-gray-100 flex-1 truncate">{title || 'Untitled Resume'}</div>
             )}
             <button onClick={() => setIsEditingTitle(v => !v)} className="text-gray-400 hover:text-teal-600 transition flex-shrink-0">
               <Edit2 size={16} />

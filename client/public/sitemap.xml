@@ -4,18 +4,54 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Homepage / Landing Page — highest priority -->
+  <!-- Landing / Homepage -->
   <url>
     <loc>https://ai-resume-builder.vercel.app/</loc>
-    <lastmod>2026-06-20</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+
+  <!-- Blog Index Page -->
+  <url>
+    <loc>https://ai-resume-builder.vercel.app/blog</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blog Posts -->
+  <url>
+    <loc>https://ai-resume-builder.vercel.app/blog/how-to-write-ats-resume-2026</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ai-resume-builder.vercel.app/blog/top-10-action-verbs-resume</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ai-resume-builder.vercel.app/blog/tailor-resume-job-description-ai</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Future Features Page -->
+  <url>
+    <loc>https://ai-resume-builder.vercel.app/future-features</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- Login Page -->
   <url>
     <loc>https://ai-resume-builder.vercel.app/login</loc>
-    <lastmod>2026-06-20</lastmod>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -23,17 +59,9 @@
   <!-- Register Page -->
   <url>
     <loc>https://ai-resume-builder.vercel.app/register</loc>
-    <lastmod>2026-06-20</lastmod>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <!-- Blog Page -->
-  <url>
-    <loc>https://ai-resume-builder.vercel.app/blog</loc>
-    <lastmod>2026-06-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
 
 </urlset>

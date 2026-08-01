@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, FileText, Edit3, Trash2, Copy, LogOut, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -106,10 +107,11 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow">
+      <SEOHead title="My Resumes — ResumeAI Dashboard" noIndex={true} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 sm:mb-10">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">My Resumes</h2>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">My Resumes</h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">Build and manage your AI-powered resumes</p>
         </div>
         <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
@@ -184,7 +186,7 @@ const Dashboard = () => {
 
                 {/* Card Info */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-800 truncate mb-0.5 text-sm">{resume.title || 'Untitled Resume'}</h3>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200 truncate mb-0.5 text-sm">{resume.title || 'Untitled Resume'}</div>
                   <p className="text-xs text-gray-400 mb-3">Updated {resume.updatedAt ? new Date(resume.updatedAt).toLocaleDateString() : 'recently'}</p>
 
                   {/* Completion bar */}

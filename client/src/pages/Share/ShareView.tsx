@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { Download, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -102,7 +103,11 @@ const ShareView = () => {
   const fullName = resumeData.personalInfo?.fullName || 'Shared';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200">
+      <SEOHead
+        title={`${fullName}'s Resume — ResumeAI`}
+        description={`View and download ${fullName}'s ATS-optimized resume created with ResumeAI.`}
+      />
       {/* Top Header */}
       <header className="bg-white shadow-xs border-b border-gray-200 py-3.5 px-4 sm:px-8 flex justify-between items-center sticky top-0 z-50">
         <Link to="/" className="flex items-center gap-2">

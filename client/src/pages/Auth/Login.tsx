@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -222,13 +223,17 @@ const Login = () => {
 
   return (
     <div className="flex-grow flex items-center justify-center p-3 sm:p-4 my-4 sm:my-8 font-sans">
+      <SEOHead
+        title="Log In — ResumeAI"
+        description="Log in to your ResumeAI account to manage your resumes, generate AI summaries, and export PDFs."
+      />
       <div id="recaptcha-container"></div>
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 relative">
+      <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800 relative">
         <Link to="/" className="absolute top-5 left-5 sm:top-6 sm:left-6 text-gray-400 hover:text-teal-600 transition flex items-center gap-1 text-xs sm:text-sm font-medium">
           <ArrowLeft size={16} /> Home
         </Link>
 
-        <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6 mt-4 sm:mt-2">Welcome Back</h2>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-6 mt-4 sm:mt-2">Welcome Back</h1>
 
         {error && <div className="p-3 mb-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">{error}</div>}
 

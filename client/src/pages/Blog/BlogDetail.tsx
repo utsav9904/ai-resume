@@ -1,3 +1,4 @@
+import SEOHead from '../../components/SEOHead';
 import { Link, useParams } from 'react-router-dom';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { posts, categoryColors } from './blogData';
@@ -8,7 +9,8 @@ const BlogDetail = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+        <SEOHead title="Article Not Found — ResumeAI Blog" noIndex={true} />
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2 text-gray-900 font-semibold">
             <Sparkles size={16} className="text-teal-600" /> ResumeAI
@@ -28,7 +30,12 @@ const BlogDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-200">
+      <SEOHead
+        title={`${post.title} — ResumeAI Blog`}
+        description={post.excerpt}
+        keywords={`${post.category}, resume guide, career advice, ${post.title.toLowerCase()}`}
+      />
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 text-gray-900 font-semibold">
           <Sparkles size={16} className="text-teal-600" /> ResumeAI
