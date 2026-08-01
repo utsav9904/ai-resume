@@ -11,12 +11,14 @@ import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
-import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
+import { generatePDF, generatePDFBlob, printVectorPDF } from '../../utils/pdfExport';
 import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { toast } from 'react-hot-toast';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../config/firebase';
 import { resumeService } from '../../services/resumeService';
 
 const sectionLabels: { [key: string]: string } = {
@@ -142,24 +144,42 @@ const Builder = () => {
     e.preventDefault();
     if (!shareEmail) return;
 
-    const toastId = toast.loading('Sending email...');
+    const toastId = toast.loading('Generating PDF & preparing email...');
     try {
       const serviceId = 'service_lf4pzre';
       const templateId = 'template_x38j328';
       const publicKey = 'u01NJS_ZbqnoN7kVS';
 
-      // Skip PDF upload for now - just send a direct email notification
+      let pdfDownloadUrl = window.location.href;
+
+      // 1. Generate real PDF blob from live preview
+      const pdfBlob = await generatePDFBlob('resume-preview', customization.pageSize || 'a4', customization.customPageSize);
+
+      if (pdfBlob) {
+        try {
+          // 2. Upload to Firebase Storage so email recipient receives direct PDF download file
+          const sanitizedName = (personalInfo.fullName || 'Resume').replace(/[^a-zA-Z0-9]/g, '_');
+          const fileName = `shared_resumes/${Date.now()}_${sanitizedName}.pdf`;
+          const storageRef = ref(storage, fileName);
+          await uploadBytes(storageRef, pdfBlob, { contentType: 'application/pdf' });
+          pdfDownloadUrl = await getDownloadURL(storageRef);
+          console.log('📄 Direct PDF file URL uploaded to cloud storage:', pdfDownloadUrl);
+        } catch (uploadErr) {
+          console.warn('⚠️ Cloud storage upload failed, falling back to website URL:', uploadErr);
+        }
+      }
+
       const templateParams = {
         user_name: personalInfo.fullName || 'Resume User',
         to_email: shareEmail,
         to_name: shareEmail.split('@')[0],
         from_name: personalInfo.fullName || 'ResumeAI',
         reply_to: personalInfo.email || 'noreply@resumeai.com',
-        message: `Hi! ${personalInfo.fullName || 'A user'} has shared a resume with you via ResumeAI. Open the link to view it: ${window.location.href}`,
-        download_link: window.location.href,
+        message: `Hi! ${personalInfo.fullName || 'A user'} has shared their PDF resume with you. Download the actual PDF document directly using the link below:`,
+        download_link: pdfDownloadUrl,
       };
 
-      console.log('📧 Sending EmailJS request:', { serviceId, templateId, publicKey, templateParams });
+      console.log('📧 Sending EmailJS request with PDF link:', { serviceId, templateId, publicKey, templateParams });
 
       const payload = {
         service_id: serviceId,
@@ -181,12 +201,12 @@ const Builder = () => {
         throw new Error(`EmailJS Error (${response.status}): ${responseText}`);
       }
 
-      toast.success(`Email sent to ${shareEmail}!`, { id: toastId });
+      toast.success(`PDF Resume emailed to ${shareEmail}!`, { id: toastId });
       setShareModalOpen(false);
       setShareEmail('');
     } catch (err: any) {
       console.error('❌ Share via email error:', err);
-      toast.error(err.message || 'Failed to send email. Check console for details.', { id: toastId });
+      toast.error(err.message || 'Failed to send email.', { id: toastId });
     }
   };
 
