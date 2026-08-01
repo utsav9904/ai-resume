@@ -5,7 +5,7 @@ import { resumeService, type ResumeData } from '../../services/resumeService';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
-import { generatePDF } from '../../utils/pdfExport';
+import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
 import { toast } from 'react-hot-toast';
 
 const ShareView = () => {
@@ -119,12 +119,18 @@ const ShareView = () => {
             </span>
           )}
           <button
+            onClick={() => printVectorPDF('resume-preview')}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-200 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5"
+          >
+            <span>🖨️ Vector ATS-PDF</span>
+          </button>
+          <button
             onClick={handleDownloadPDF}
             disabled={downloading}
             className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition shadow-md flex items-center gap-2 disabled:opacity-50"
           >
             <Download size={16} />
-            {downloading ? 'Downloading...' : 'Download PDF Document'}
+            {downloading ? 'Downloading...' : 'Download PDF'}
           </button>
         </div>
       </header>

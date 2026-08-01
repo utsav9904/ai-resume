@@ -151,6 +151,44 @@ export const generatePDF = async (
   URL.revokeObjectURL(url);
 };
 
-export const printVectorPDF = () => {
-  window.print();
+export const printVectorPDF = (elementId: string = 'resume-preview') => {
+  const element = document.getElementById(elementId);
+  if (!element) {
+    window.print();
+    return;
+  }
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+
+  const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+    .map(s => s.outerHTML)
+    .join('\n');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>ATS Printable Resume</title>
+        ${styles}
+        <style>
+          @page { size: auto; margin: 0; }
+          body { background: white; margin: 0; padding: 20px; font-family: system-ui, sans-serif; }
+          #print-root { width: 100%; max-width: 800px; margin: 0 auto; }
+        </style>
+      </head>
+      <body>
+        <div id="print-root">${element.innerHTML}</div>
+        <script>
+          setTimeout(() => {
+            window.print();
+            window.close();
+          }, 400);
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
 };
