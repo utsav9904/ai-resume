@@ -6,7 +6,6 @@ import {
   Menu, X, Edit2, Target, Sliders, Columns, Type, Palette, Move, Heading,
   ChevronUp, ChevronDown, RefreshCw
 } from 'lucide-react';
-import api from '../../services/api';
 import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
@@ -286,7 +285,7 @@ const Builder = () => {
     setIsGeneratingAI(true);
     const toastId = toast.loading('Generating AI summary...');
     try {
-      const prompt = `Write a professional resume summary for ${personalInfo.fullName} (${personalInfo.jobTitle || 'Professional'}). Based on experience: ${JSON.stringify(experience)} and skills: ${JSON.stringify(skills)}`;
+      const prompt = `Write a professional resume summary for ${personalInfo.fullName} (${(personalInfo as any).jobTitle || 'Professional'}). Based on experience: ${JSON.stringify(experience)} and skills: ${JSON.stringify(skills)}`;
       const summaryText = await aiService.generateSummary(prompt);
       updateSummary(summaryText);
       toast.success('Summary generated successfully!', { id: toastId });
