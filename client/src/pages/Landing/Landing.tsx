@@ -52,7 +52,7 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col font-sans transition-colors duration-200">
+    <div className="landing-page-root min-h-screen bg-white text-gray-900 flex flex-col font-sans transition-colors duration-200">
       <SEOHead
         title="ResumeAI — Free AI-Powered Resume Builder | Create ATS-Friendly Resumes"
         description="Build professional, ATS-optimized resumes in minutes with AI. Get AI-generated summaries, cover letters, and skill suggestions. Choose from 3 premium templates. Free forever."
