@@ -22,7 +22,7 @@ const Landing = () => {
 
   const features = [
     { icon: <Sparkles size={24} />, title: 'AI-Powered Writing', desc: 'Generate professional summaries, improve bullet points, and get skill suggestions powered by OpenAI.' },
-    { icon: <Palette size={24} />, title: '3 Premium Templates', desc: 'Choose from Modern, Minimalist, or Professional templates. Customize accent colors to match your style.' },
+    { icon: <Palette size={24} />, title: '9 Premium Templates', desc: 'Choose from 9 templates including Modern, Executive, Creative, Tech/Developer, Academic, Startup, and Compact.' },
     { icon: <FileText size={24} />, title: 'Cover Letter Generator', desc: 'Paste any job description and AI instantly generates a tailored, persuasive cover letter for that role.' },
     { icon: <Zap size={24} />, title: 'Job Tailoring', desc: 'Analyze your resume against a job posting. Get specific keyword suggestions to beat ATS filters.' },
     { icon: <Download size={24} />, title: 'PDF Export', desc: 'Download your perfectly formatted resume as a high-quality PDF, ready to send to any employer.' },
@@ -55,7 +55,7 @@ const Landing = () => {
     <div className="landing-page-root min-h-screen bg-white text-gray-900 flex flex-col font-sans transition-colors duration-200">
       <SEOHead
         title="ResumeAI — Free AI-Powered Resume Builder | Create ATS-Friendly Resumes"
-        description="Build professional, ATS-optimized resumes in minutes with AI. Get AI-generated summaries, cover letters, and skill suggestions. Choose from 3 premium templates. Free forever."
+        description="Build professional, ATS-optimized resumes in minutes with AI. Get AI-generated summaries, cover letters, and skill suggestions. Choose from 9 premium templates. Free forever."
         keywords="AI resume builder, free resume builder, ATS resume, professional resume, cover letter generator, resume templates, AI career tools, job application"
       />
       {/* Navigation */}

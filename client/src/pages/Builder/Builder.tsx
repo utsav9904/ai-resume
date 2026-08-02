@@ -11,6 +11,12 @@ import { useResumeStore } from '../../store/useResumeStore';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
+import ExecutiveTemplate from '../../components/templates/ExecutiveTemplate';
+import CreativeTemplate from '../../components/templates/CreativeTemplate';
+import TechTemplate from '../../components/templates/TechTemplate';
+import AcademicTemplate from '../../components/templates/AcademicTemplate';
+import StartupTemplate from '../../components/templates/StartupTemplate';
+import CompactTemplate from '../../components/templates/CompactTemplate';
 import { generatePDF, generatePDFBlob, printVectorPDF } from '../../utils/pdfExport';
 import { exportToDocx, exportToTxt, exportToJson } from '../../utils/docxExport';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -1425,10 +1431,16 @@ const Builder = () => {
         <div className="flex gap-3 mb-4 bg-white p-3 rounded-xl shadow-xs items-center border border-gray-100">
           <div className="flex-1">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Template</label>
-            <select value={template} onChange={e => setResume({ template: e.target.value })} className="w-full text-xs sm:text-sm border border-gray-200 rounded-lg p-1.5 outline-none bg-gray-50 focus:ring-1 focus:ring-teal-400">
+            <select value={template} onChange={e => setResume({ template: e.target.value })} className="w-full text-xs sm:text-sm border border-gray-200 rounded-lg p-1.5 outline-none bg-gray-50 focus:ring-1 focus:ring-teal-400 font-medium">
               <option value="modern">Modern</option>
               <option value="minimalist">Minimalist</option>
               <option value="professional">Professional</option>
+              <option value="executive">Executive</option>
+              <option value="creative">Creative</option>
+              <option value="tech">Tech / Developer</option>
+              <option value="academic">Academic (Harvard)</option>
+              <option value="startup">Startup</option>
+              <option value="compact">Compact Grid</option>
             </select>
           </div>
           <div>
@@ -1442,6 +1454,12 @@ const Builder = () => {
           {template === 'modern' && <ModernTemplate data={store} />}
           {template === 'minimalist' && <MinimalistTemplate data={store} />}
           {template === 'professional' && <ProfessionalTemplate data={store} />}
+          {template === 'executive' && <ExecutiveTemplate data={store} />}
+          {template === 'creative' && <CreativeTemplate data={store} />}
+          {template === 'tech' && <TechTemplate data={store} />}
+          {template === 'academic' && <AcademicTemplate data={store} />}
+          {template === 'startup' && <StartupTemplate data={store} />}
+          {template === 'compact' && <CompactTemplate data={store} />}
         </div>
       </section>
 

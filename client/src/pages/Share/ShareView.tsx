@@ -6,6 +6,12 @@ import { resumeService, type ResumeData } from '../../services/resumeService';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import MinimalistTemplate from '../../components/templates/MinimalistTemplate';
 import ProfessionalTemplate from '../../components/templates/ProfessionalTemplate';
+import ExecutiveTemplate from '../../components/templates/ExecutiveTemplate';
+import CreativeTemplate from '../../components/templates/CreativeTemplate';
+import TechTemplate from '../../components/templates/TechTemplate';
+import AcademicTemplate from '../../components/templates/AcademicTemplate';
+import StartupTemplate from '../../components/templates/StartupTemplate';
+import CompactTemplate from '../../components/templates/CompactTemplate';
 import { generatePDF, printVectorPDF } from '../../utils/pdfExport';
 import { toast } from 'react-hot-toast';
 
@@ -156,6 +162,12 @@ const ShareView = () => {
           {template === 'modern' && <ModernTemplate data={resumeData as any} />}
           {template === 'minimalist' && <MinimalistTemplate data={resumeData as any} />}
           {template === 'professional' && <ProfessionalTemplate data={resumeData as any} />}
+          {template === 'executive' && <ExecutiveTemplate data={resumeData as any} />}
+          {template === 'creative' && <CreativeTemplate data={resumeData as any} />}
+          {template === 'tech' && <TechTemplate data={resumeData as any} />}
+          {template === 'academic' && <AcademicTemplate data={resumeData as any} />}
+          {template === 'startup' && <StartupTemplate data={resumeData as any} />}
+          {template === 'compact' && <CompactTemplate data={resumeData as any} />}
         </div>
       </main>
     </div>
