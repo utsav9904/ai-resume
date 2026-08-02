@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, FileText, Download, Zap, Shield, Palette, ArrowRight, CheckCircle, Star, Menu, X } from 'lucide-react';
 import SEOHead from '../../components/SEOHead';
 
 const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Ensure dark mode is disabled on the home page
+    const root = document.documentElement;
+    root.classList.remove('dark');
+
+    return () => {
+      // Restore dark mode if saved theme was dark when leaving home page
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        root.classList.add('dark');
+      }
+    };
+  }, []);
 
   const features = [
     { icon: <Sparkles size={24} />, title: 'AI-Powered Writing', desc: 'Generate professional summaries, improve bullet points, and get skill suggestions powered by OpenAI.' },
