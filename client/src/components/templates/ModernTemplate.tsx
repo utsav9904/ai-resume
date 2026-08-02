@@ -144,6 +144,13 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   const showIcons = customization.showIcons !== false;
   const pageBreaks = customization.pageBreaks || [];
 
+  const expList = data.experience || [];
+  const eduList = data.education || [];
+  const techSkills = data.skills?.technical || [];
+  const softSkills = data.skills?.soft || [];
+  const langSkills = data.skills?.languages || [];
+  const pInfo = data.personalInfo || {};
+
   // Render Subsections
   const renderSummary = () => {
     if (!data.summary) return null;
@@ -156,12 +163,12 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderExperience = () => {
-    if (data.experience.length === 0) return null;
+    if (expList.length === 0) return null;
     return (
       <section style={sectionStyle} key="experience">
         <SectionHeader title="Experience" color={accentColor} styleType={customization.headingStyle} />
         <div className="space-y-3">
-          {data.experience.map((exp) => (
+          {expList.map((exp) => (
             <div key={exp.id} style={itemStyle}>
               <div className="flex justify-between items-baseline mb-0.5">
                 <h3 className="font-semibold text-[0.95em]">{exp.position || 'Position Title'}</h3>
@@ -183,12 +190,12 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderEducation = () => {
-    if (data.education.length === 0) return null;
+    if (eduList.length === 0) return null;
     return (
       <section style={sectionStyle} key="education">
         <SectionHeader title="Education" color={accentColor} styleType={customization.headingStyle} />
         <div className="space-y-3">
-          {data.education.map((edu) => (
+          {eduList.map((edu) => (
             <div key={edu.id} style={itemStyle}>
               <div className="flex justify-between items-baseline mb-0.5">
                 <h3 className="font-semibold text-[0.95em]">{edu.degree || 'Degree'}</h3>
@@ -210,9 +217,9 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderSkills = () => {
-    const hasTechnical = data.skills.technical.some(s => s);
-    const hasSoft = data.skills.soft.some(s => s);
-    const hasLanguages = data.skills.languages.some(s => s);
+    const hasTechnical = techSkills.some(s => s);
+    const hasSoft = softSkills.some(s => s);
+    const hasLanguages = langSkills.some(s => s);
     if (!hasTechnical && !hasSoft && !hasLanguages) return null;
 
     return (
@@ -220,13 +227,13 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
         <SectionHeader title="Skills" color={accentColor} styleType={customization.headingStyle} />
         <div className="text-[0.88em] space-y-1.5">
           {hasTechnical && (
-             <div><span className="font-semibold">Technical: </span>{data.skills.technical.filter(s => s).join(', ')}</div>
+             <div><span className="font-semibold">Technical: </span>{techSkills.filter(s => s).join(', ')}</div>
           )}
           {hasSoft && (
-             <div><span className="font-semibold">Soft Skills: </span>{data.skills.soft.filter(s => s).join(', ')}</div>
+             <div><span className="font-semibold">Soft Skills: </span>{softSkills.filter(s => s).join(', ')}</div>
           )}
           {hasLanguages && (
-             <div><span className="font-semibold">Languages: </span>{data.skills.languages.filter(s => s).join(', ')}</div>
+             <div><span className="font-semibold">Languages: </span>{langSkills.filter(s => s).join(', ')}</div>
           )}
         </div>
       </section>
@@ -288,14 +295,14 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
 
   const renderHeader = () => (
     <header className="border-b-2 pb-4" style={{ borderColor: accentColor, marginBottom: sectionMarginMap[customization.sectionSpacing] || '24px' }}>
-      <h1 className="text-[2.2em] font-bold tracking-tight mb-1" style={{ lineHeight: 1.1 }}>{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+      <h1 className="text-[2.2em] font-bold tracking-tight mb-1" style={{ lineHeight: 1.1 }}>{pInfo.fullName || 'YOUR NAME'}</h1>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.88em] opacity-85 mt-2">
-        {data.personalInfo.email && <span>{showIcons ? '✉ ' : ''}{data.personalInfo.email}</span>}
-        {data.personalInfo.phone && <span>{showIcons ? '☎ ' : '• '}{data.personalInfo.phone}</span>}
-        {data.personalInfo.address && <span>{showIcons ? '📍 ' : '• '}{data.personalInfo.address}</span>}
-        {data.personalInfo.linkedin && <span>{showIcons ? '💼 ' : '• '}{data.personalInfo.linkedin}</span>}
-        {data.personalInfo.github && <span>{showIcons ? '⌨ ' : '• '}{data.personalInfo.github}</span>}
-        {data.personalInfo.portfolio && <span>{showIcons ? '🌐 ' : '• '}{data.personalInfo.portfolio}</span>}
+        {pInfo.email && <span>{showIcons ? '✉ ' : ''}{pInfo.email}</span>}
+        {pInfo.phone && <span>{showIcons ? '☎ ' : '• '}{pInfo.phone}</span>}
+        {pInfo.address && <span>{showIcons ? '📍 ' : '• '}{pInfo.address}</span>}
+        {pInfo.linkedin && <span>{showIcons ? '💼 ' : '• '}{pInfo.linkedin}</span>}
+        {pInfo.github && <span>{showIcons ? '⌨ ' : '• '}{pInfo.github}</span>}
+        {pInfo.portfolio && <span>{showIcons ? '🌐 ' : '• '}{pInfo.portfolio}</span>}
       </div>
     </header>
   );

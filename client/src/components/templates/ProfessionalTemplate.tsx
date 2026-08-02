@@ -147,6 +147,13 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
   const showIcons = customization.showIcons !== false;
   const pageBreaks = customization.pageBreaks || [];
 
+  const expList = data.experience || [];
+  const eduList = data.education || [];
+  const techSkills = data.skills?.technical || [];
+  const softSkills = data.skills?.soft || [];
+  const langSkills = data.skills?.languages || [];
+  const pInfo = data.personalInfo || {};
+
   // Render Subsections
   const renderSummary = (isSidebar = false) => {
     if (!data.summary) return null;
@@ -159,12 +166,12 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderExperience = (isSidebar = false) => {
-    if (data.experience.length === 0) return null;
+    if (expList.length === 0) return null;
     return (
       <section style={sectionStyle} key="experience">
         <SectionHeader title="Work Experience" color={accentColor} styleType={customization.headingStyle} isSidebar={isSidebar} />
         <div className="space-y-3">
-          {data.experience.map((exp) => (
+          {expList.map((exp) => (
             <div key={exp.id} style={itemStyle}>
               <div className="flex justify-between items-baseline mb-0.5">
                 <h3 className="font-bold text-[0.95em]">{exp.position || 'Position Title'}</h3>
@@ -186,12 +193,12 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderEducation = (isSidebar = false) => {
-    if (data.education.length === 0) return null;
+    if (eduList.length === 0) return null;
     return (
       <section style={sectionStyle} key="education">
         <SectionHeader title="Education" color={accentColor} styleType={customization.headingStyle} isSidebar={isSidebar} />
         <div className="space-y-3">
-          {data.education.map((edu) => (
+          {eduList.map((edu) => (
             <div key={edu.id} style={itemStyle}>
               <div className="flex justify-between items-baseline mb-0.5">
                 <h3 className="font-bold text-[0.92em]">{edu.degree || 'Degree'}</h3>
@@ -213,9 +220,9 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   const renderSkills = (isSidebar = false) => {
-    const hasTechnical = data.skills.technical.some(s => s);
-    const hasSoft = data.skills.soft.some(s => s);
-    const hasLanguages = data.skills.languages.some(s => s);
+    const hasTechnical = techSkills.some(s => s);
+    const hasSoft = softSkills.some(s => s);
+    const hasLanguages = langSkills.some(s => s);
     if (!hasTechnical && !hasSoft && !hasLanguages) return null;
 
     return (
@@ -226,7 +233,7 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
             <div>
               <div className="font-semibold mb-0.5 text-[0.9em]">Technical Skills</div>
               <div className="flex flex-wrap gap-1">
-                {data.skills.technical.filter(s => s).map((sk, i) => (
+                {techSkills.filter(s => s).map((sk, i) => (
                   <span key={i} className={`px-2 py-0.5 rounded text-[0.85em] ${isSidebar ? 'bg-white/15 text-white' : 'bg-gray-100 text-gray-800'}`}>
                     {sk}
                   </span>
@@ -237,13 +244,13 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
           {hasSoft && (
             <div>
               <div className="font-semibold mb-0.5 text-[0.9em]">Soft Skills</div>
-              <div className="opacity-90">{data.skills.soft.filter(s => s).join(', ')}</div>
+              <div className="opacity-90">{softSkills.filter(s => s).join(', ')}</div>
             </div>
           )}
           {hasLanguages && (
             <div>
               <div className="font-semibold mb-0.5 text-[0.9em]">Languages</div>
-              <div className="opacity-90">{data.skills.languages.filter(s => s).join(', ')}</div>
+              <div className="opacity-90">{langSkills.filter(s => s).join(', ')}</div>
             </div>
           )}
         </div>
@@ -320,12 +327,12 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => {
     const itemClass = isSidebar ? "break-all" : "";
     return (
       <div className={wrapperClass}>
-        {data.personalInfo.email && <div className={itemClass}>{showIcons ? '✉ ' : ''}{data.personalInfo.email}</div>}
-        {data.personalInfo.phone && <div className={itemClass}>{showIcons ? '☎ ' : ''}{data.personalInfo.phone}</div>}
-        {data.personalInfo.address && <div className={itemClass}>{showIcons ? '📍 ' : ''}{data.personalInfo.address}</div>}
-        {data.personalInfo.linkedin && <div className={itemClass}>{showIcons ? '💼 ' : ''}{data.personalInfo.linkedin}</div>}
-        {data.personalInfo.github && <div className={itemClass}>{showIcons ? '⌨ ' : ''}{data.personalInfo.github}</div>}
-        {data.personalInfo.portfolio && <div className={itemClass}>{showIcons ? '🌐 ' : ''}{data.personalInfo.portfolio}</div>}
+        {pInfo.email && <div className={itemClass}>{showIcons ? '✉ ' : ''}{pInfo.email}</div>}
+        {pInfo.phone && <div className={itemClass}>{showIcons ? '☎ ' : ''}{pInfo.phone}</div>}
+        {pInfo.address && <div className={itemClass}>{showIcons ? '📍 ' : ''}{pInfo.address}</div>}
+        {pInfo.linkedin && <div className={itemClass}>{showIcons ? '💼 ' : ''}{pInfo.linkedin}</div>}
+        {pInfo.github && <div className={itemClass}>{showIcons ? '⌨ ' : ''}{pInfo.github}</div>}
+        {pInfo.portfolio && <div className={itemClass}>{showIcons ? '🌐 ' : ''}{pInfo.portfolio}</div>}
       </div>
     );
   };

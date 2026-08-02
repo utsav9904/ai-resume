@@ -144,6 +144,13 @@ const defaultState = {
   customization: defaultCustomization,
 };
 
+const generateId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+};
+
 export const useResumeStore = create<ResumeState>((set) => ({
   ...defaultState,
 
@@ -152,7 +159,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   updateSummary: (summary) => set({ summary }),
 
   addExperience: () => set((state) => ({
-    experience: [...state.experience, { id: crypto.randomUUID(), company: '', position: '', startDate: '', endDate: '', description: '' }]
+    experience: [...state.experience, { id: generateId(), company: '', position: '', startDate: '', endDate: '', description: '' }]
   })),
   updateExperience: (id, data) => set((state) => ({
     experience: state.experience.map(exp => exp.id === id ? { ...exp, ...data } : exp)
@@ -168,7 +175,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   }),
 
   addEducation: () => set((state) => ({
-    education: [...state.education, { id: crypto.randomUUID(), school: '', degree: '', startDate: '', endDate: '', grade: '' }]
+    education: [...state.education, { id: generateId(), school: '', degree: '', startDate: '', endDate: '', grade: '' }]
   })),
   updateEducation: (id, data) => set((state) => ({
     education: state.education.map(edu => edu.id === id ? { ...edu, ...data } : edu)
@@ -197,7 +204,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   })),
 
   addProject: () => set((state) => ({
-    projects: [...state.projects, { id: crypto.randomUUID(), name: '', description: '', technologies: '', githubLink: '' }]
+    projects: [...state.projects, { id: generateId(), name: '', description: '', technologies: '', githubLink: '' }]
   })),
   updateProject: (id, data) => set((state) => ({
     projects: state.projects.map((p) => p.id === id ? { ...p, ...data } : p)
@@ -207,7 +214,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   })),
 
   addCertification: () => set((state) => ({
-    certifications: [...state.certifications, { id: crypto.randomUUID(), name: '', organization: '', date: '' }]
+    certifications: [...state.certifications, { id: generateId(), name: '', organization: '', date: '' }]
   })),
   updateCertification: (id, data) => set((state) => ({
     certifications: state.certifications.map((c) => c.id === id ? { ...c, ...data } : c)

@@ -13,7 +13,8 @@ const saveBlob = (blob: Blob, filename: string) => {
 };
 
 export const exportToDocx = async (data: ResumeState, filename: string = 'resume.docx') => {
-  const { personalInfo, summary, experience, education, skills, projects, certifications, templateColor } = data;
+  const { summary, experience, education, skills, projects, certifications, templateColor } = data;
+  const personalInfo = data.personalInfo || {};
 
   const primaryColor = templateColor ? templateColor.replace('#', '') : '0D9488';
 
@@ -249,7 +250,8 @@ export const exportToDocx = async (data: ResumeState, filename: string = 'resume
 };
 
 export const exportToTxt = (data: ResumeState, filename: string = 'resume.txt') => {
-  const { personalInfo, summary, experience, education, skills, projects, certifications } = data;
+  const { summary, experience, education, skills, projects, certifications } = data;
+  const personalInfo = data.personalInfo || {};
   let text = `${(personalInfo.fullName || 'RESUME').toUpperCase()}\n`;
   text += `${'='.repeat(40)}\n`;
   if (personalInfo.email) text += `Email: ${personalInfo.email}\n`;
